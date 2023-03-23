@@ -1,0 +1,117 @@
+<template>
+  <div
+    class="slds-form-element"
+    onmouseleave={toggleResult}
+    data-source="lookupContainer"
+  >
+    <div class="slds-combobox_container slds-has-selection">
+      <label class="slds-form-element__label" for="combobox-id-1"
+        >{label}</label
+      >
+      <div
+        class="lookupInputContainer slds-combobox slds-dropdown-trigger slds-dropdown-trigger_click"
+        aria-expanded="false"
+        aria-haspopup="listbox"
+        role="combobox"
+      >
+        <!--------------- lookup field ---------------->
+        <div
+          class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_left-right"
+          role="none"
+        >
+          <div class="searchBoxWrapper">
+            <lightning-input
+              type="search"
+              data-id="userinput"
+              name="searchText"
+              is-loading={isSearchLoading}
+              value={searchKey}
+              variant="label-hidden"
+              placeholder={placeholder}
+              onchange={handleKeyChange}
+              onclick={toggleResult}
+              data-source="searchInputField"
+            ></lightning-input>
+          </div>
+        </div>
+        <!--------------- lookup field ---------------->
+        <!-- lookup Selected record pill container start-->
+        <div
+          class="slds-form-element__control slds-input-has-icon slds-input-has-icon slds-input-has-icon_left-right"
+          role="none"
+        >
+          <template for:each={selectedRecords} for:item="serecord">
+            <span key={serecord.Id}>
+              <lightning-pill
+                label={serecord.Name}
+                name={serecord.Id}
+                onremove={removeRecord}
+              >
+                <lightning-icon
+                  icon-name={iconName}
+                  variant="circle"
+                  alternative-text={serecord.Name}
+                ></lightning-icon>
+              </lightning-pill>
+            </span>
+          </template>
+        </div>
+        <!------ /lookup Selected record pill container end ----------->
+        <!------ lookup search result part start------------>
+        <div
+          style="margin-top: 0px"
+          id="listbox-id-1"
+          class="slds-dropdown slds-dropdown_length-with-icon-7 slds-dropdown_fluid"
+          role="listbox"
+        >
+          <ul class="slds-listbox slds-listbox_vertical" role="presentation">
+            <template for:each={searchRecords} for:item="obj">
+              <li key={obj.Id} role="presentation" class="slds-listbox__item">
+                <div
+                  data-id={obj.Id}
+                  data-name={obj.Name}
+                  onclick={setSelectedRecord}
+                  class="slds-media slds-listbox__option slds-listbox__option_entity slds-listbox__option_has-meta"
+                  role="option"
+                >
+                  <span
+                    style="pointer-events: none"
+                    class="slds-media__figure slds-listbox__option-icon"
+                  >
+                    <span class="slds-icon_container">
+                      <lightning-icon
+                        icon-name={iconName}
+                        size="small"
+                        alternative-text="icon"
+                      ></lightning-icon>
+                    </span>
+                  </span>
+                  <span style="pointer-events: none" class="slds-media__body">
+                    <span
+                      class="slds-listbox__option-text slds-listbox__option-text_entity"
+                      >{obj.Name}</span
+                    >
+                    <span
+                      class="slds-listbox__option-meta slds-listbox__option-meta_entity"
+                      >Account • {obj.Name}</span
+                    >
+                  </span>
+                </div>
+              </li>
+            </template>
+            <!-- if there are no records..-->
+            <template if:true={messageFlag}>
+              <li
+                class="slds-listbox__item"
+                style="text-align: center; font-weight: bold"
+              >
+                No Records Found...
+              </li>
+            </template>
+          </ul>
+        </div>
+        <!------ /lookup search result part start------------>
+      </div>
+    </div>
+  </div>
+</template>

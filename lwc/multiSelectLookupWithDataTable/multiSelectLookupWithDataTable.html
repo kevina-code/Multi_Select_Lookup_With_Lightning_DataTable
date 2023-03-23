@@ -1,0 +1,26 @@
+<template>
+  <lightning-card variant="Narrow" title={title} icon-name="standard:apps">
+    <div class="slds-p-horizontal_small">
+      <!-- multi select lookup -->
+      <c-multi-select-lookup
+        obj-api-name={objApiName}
+        field-api-names={fieldApiNames}
+        icon-name={iconName}
+        onselected={handleSelectedRecords}
+        placeholder="Lookup record..."
+      >
+      </c-multi-select-lookup>
+      <!-- dynamic data table -->
+      <template if:true={selectedRecordsLength}>
+        <c-dynamic-data-table
+          obj-api-name={objApiName}
+          field-api-names={fieldApiNames}
+          actions-str={actionsStr}
+          record-data={recordData}
+          placeholder="Lookup record..."
+        >
+        </c-dynamic-data-table>
+      </template>
+    </div>
+  </lightning-card>
+</template>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>56.0</apiVersion>
+    <isExposed>true</isExposed>
+    <masterLabel>Dynamic Data Table</masterLabel>
+    <description>Easy Config Dynamic Data Table</description>
+    <targets>
+        <target>lightning__RecordPage</target>
+    </targets>
+    <targetConfigs>
+        <targetConfig targets="lightning__RecordPage">
+            <property
+        name="title"
+        label="Title"
+        type="String"
+        placeholder="Ex: My Data Table"
+        description="Enter the desired title of this instance of the component"
+      />
+            <property
+        name="objApiName"
+        label="Object API Name"
+        required="true"
+        type="String"
+        placeholder="Ex: Account"
+        description="Enter the object API Name"
+      />
+            <property
+        name="fieldApiNames"
+        type="String"
+        required="true"
+        label="Field API Names"
+        placeholder="Ex: Id, Name, AccountNumber"
+        description="Enter the fields to query"
+      />
+      <property
+        name="whereClause"
+        type="String"
+        required="true"
+        label="Where Clause"
+        placeholder="Ex: WHERE Name LIKE %ABC% ORDER BY Name LIMIT 10"
+        description="Enter where clause to filter records"
+      />
+      <property
+        name="actionsStr"
+        type="String"
+        label="Actions"
+        placeholder="Ex: view, edit, delete"
+        description="Optionally enter row actions to be added to the table"
+      />
+        </targetConfig>
+    </targetConfigs>
+</LightningComponentBundle>
