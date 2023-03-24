@@ -1,19 +1,19 @@
 /**
  * Author     : Kevin Antonioli (braveitnow@pm.me)
- * Description: object-agnostic multi select lookup with dynamic lightning-datatable population based on selected records
+ * Description: object-agnostic multi select lookup
  * Created    : 03.22.2023
  */
 
 /* eslint-disable @lwc/lwc/no-leading-uppercase-api-name */
 import { LightningElement, api } from "lwc";
+import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import retrieveSearchData from "@salesforce/apex/MultiSelectLookupCtrl.retrieveSearchData";
 
 export default class MultiSelectLookup extends LightningElement {
-  @api title;
   @api objApiName;
   @api fieldApiNames;
   @api Label;
-  searchRecords = [];
+  searchWrappers = [];
   selectedRecords = [];
   @api iconName;
   messageFlag = false;
@@ -22,6 +22,7 @@ export default class MultiSelectLookup extends LightningElement {
   searchKey;
   delayTimeout;
 
+  // method to retrieve records based on user search
   searchField() {
     var selectedRecordIds = [];
     this.selectedRecords.forEach((ele) => {
@@ -35,7 +36,7 @@ export default class MultiSelectLookup extends LightningElement {
       selectedRecordIds: selectedRecordIds
     })
       .then((result) => {
-        this.searchRecords = result;
+        this.searchWrappers = result;
         this.isSearchLoading = false;
         const lookupInputContainer = this.template.querySelector(
           ".lookupInputContainer"
@@ -50,7 +51,14 @@ export default class MultiSelectLookup extends LightningElement {
         }
       })
       .catch((error) => {
-        console.log(error);
+        this.dispatchEvent(
+          new ShowToastEvent({
+            title: "Error retrieving search data",
+            message: error.body.message,
+            variant: "error",
+            mode: "sticky"
+          })
+        );
       });
   }
 
@@ -67,6 +75,10 @@ export default class MultiSelectLookup extends LightningElement {
 
   // method to toggle lookup result section on UI
   toggleResult(event) {
+    console.log("event.target.value: ", event.target.value);
+    if (!event.target.value) {
+      this.messageFlag = false;
+    }
     const lookupInputContainer = this.template.querySelector(
       ".lookupInputContainer"
     );
@@ -85,9 +97,11 @@ export default class MultiSelectLookup extends LightningElement {
   }
 
   setSelectedRecord(event) {
+    this.messageFlag = false;
     var recId = event.target.dataset.id;
-    let newsObject = this.searchRecords.find((data) => data.Id === recId);
-    this.selectedRecords.push(newsObject);
+    let pluckedRecords = this.searchWrappers.map((obj) => obj.record);
+    let applicableRecords = pluckedRecords.find((data) => data.Id === recId);
+    this.selectedRecords.push(applicableRecords);
     this.template
       .querySelector(".lookupInputContainer")
       .classList.remove("slds-is-open");

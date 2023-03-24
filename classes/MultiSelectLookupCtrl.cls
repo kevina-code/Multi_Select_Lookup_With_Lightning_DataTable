@@ -5,32 +5,6 @@
  */
 public class MultiSelectLookupCtrl {
   /**
-   * @description: dynamically retrieve field labels based on fieldApiNames target config value
-   * @param   objApiName    object API name set in the target config (ex: Account)
-   * @param   fieldApiNames string of field API names set in the target config (ex: Id, Name, AccountNumber)
-   * @return  fieldLabels   a list of field labels based on fields configured in the fieldApiNames target config
-   */
-  @AuraEnabled(cacheable=true)
-  public static List<String> getFieldLabels(
-    String objApiName,
-    String fieldApiNames
-  ) {
-    Map<String, Schema.SObjectField> fieldMap = Schema.getGlobalDescribe()
-      .get(objApiName)
-      .getDescribe()
-      .fields.getMap();
-
-    List<String> fieldLabels = new List<String>();
-    for (String fieldApiName : fieldApiNames.split(',')) {
-      Schema.DescribeFieldResult fieldResult = fieldMap.get(fieldApiName.trim())
-        .getDescribe();
-      fieldLabels.add(fieldResult.getLabel());
-    }
-
-    return fieldLabels;
-  }
-
-  /**
    * @description: dynamically retrieve records based on user search input
    * @param   objApiName    object API name set in the target config (ex: Account)
    * @param   fieldApiNames string of field API names set in the target config (ex: Id, Name, AccountNumber)
@@ -38,39 +12,118 @@ public class MultiSelectLookupCtrl {
    * @return  records       queried records based on search performed by user
    */
   @AuraEnabled(cacheable=true)
-  public static List<SObject> retrieveSearchData(
+  public static List<Wrapper> retrieveSearchData(
     String objApiName,
     String fieldApiNames,
     String value,
     List<String> selectedRecordIds
   ) {
-    List<SObject> records = new List<SObject>();
+    List<Wrapper> wrappers = new List<Wrapper>();
     try {
       if (selectedRecordIds == null) {
         selectedRecordIds = new List<String>();
       }
       if (String.isNotEmpty(value)) {
-        String query =
-          'SELECT ' +
-          fieldApiNames +
+        String query = 'SELECT Id, Name';
+        if (fieldApiNames != null) {
+          for (String fieldApiName : fieldApiNames.split(',')) {
+            if (
+              fieldApiName.trim().toUpperCase() != 'ID' &&
+              fieldApiName.trim().toUpperCase() != 'NAME'
+            ) {
+              query += ', ' + fieldApiName.trim();
+            }
+          }
+        }
+        query +=
           ' FROM ' +
           objApiName +
-          ' WHERE Name LIKE \'%' +
+          ' WHERE (Name LIKE \'%' +
           value.trim() +
-          '%\' and ID NOT IN: selectedRecordIds order by createdDate DESC LIMIT 10';
-        System.debug('query: ' + query);
-        for (SObject obj : Database.Query(query)) {
-          records.add(obj);
+          '%\'';
+        if (fieldApiNames == null) {
+          query += ')';
+        } else {
+          for (String fieldApiName : fieldApiNames.split(',')) {
+            if (
+              fieldApiName.trim().toUpperCase() != 'ID' &&
+              fieldApiName.trim().toUpperCase() != 'NAME'
+            ) {
+              query +=
+                ' OR ' +
+                fieldApiName +
+                ' LIKE \'%' +
+                value.trim() +
+                '%\'';
+            }
+          }
+          query += ')';
+        }
+        query += ' AND ID NOT IN: selectedRecordIds order by CreatedDate DESC LIMIT 10';
+        for (SObject record : Database.Query(query)) {
+          wrappers.add(new Wrapper(record, fieldApiNames));
         }
       }
     } catch (Exception e) {
-      System.debug(
-        'e: ' +
+      String msg =
+        'MultiSelectLookupCtrl.retrieveSearchData: ' +
         e.getMessage() +
         ', stack trace: ' +
-        e.getStackTraceString()
-      );
+        e.getStackTraceString();
+      System.debug(msg);
+      throw new AuraHandledException(msg);
     }
-    return records;
+    return wrappers;
+  }
+
+  /**
+   * wrapper class to store additional properties alongside record
+   */
+  public class Wrapper {
+    @AuraEnabled
+    public SObject record;
+    @AuraEnabled
+    public String objName;
+    @AuraEnabled
+    public String description;
+
+    public Wrapper(SObject record, String fieldApiNames) {
+      Schema.DescribeSObjectResult describe = ((SObject) Type.forName(
+            'Schema',
+            String.valueOf(record.getSObjectType())
+          )
+          .newInstance())
+        .getSObjectType()
+        .getDescribe();
+      this.record = record;
+      this.objName = describe.getLabel();
+      this.description = getDescription(record, fieldApiNames, describe);
+    }
+
+    public String getDescription(
+      SObject record,
+      String fieldApiNames,
+      Schema.DescribeSObjectResult describe
+    ) {
+      String description = String.valueOf(record.get('Name'));
+      if (fieldApiNames != null) {
+        for (String fieldApiName : fieldApiNames.split(',')) {
+          if (
+            fieldApiName.trim().toUpperCase() != 'ID' &&
+            fieldApiName.trim().toUpperCase() != 'NAME'
+          ) {
+            Schema.DescribeFieldResult fieldResult = describe.fields.getMap()
+              .get(fieldApiName.trim())
+              .getDescribe();
+            description +=
+              ' —	' +
+              fieldResult.getLabel() +
+              ': ' +
+              String.valueOf(record.get(fieldApiName.trim()));
+          }
+        }
+      }
+      return description;
+    }
   }
 }

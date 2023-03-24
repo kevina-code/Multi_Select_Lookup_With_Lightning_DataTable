@@ -40,17 +40,17 @@
           class="slds-form-element__control slds-input-has-icon slds-input-has-icon slds-input-has-icon_left-right"
           role="none"
         >
-          <template for:each={selectedRecords} for:item="serecord">
-            <span key={serecord.Id}>
+          <template for:each={selectedRecords} for:item="selectedRecord">
+            <span key={selectedRecord.Id}>
               <lightning-pill
-                label={serecord.Name}
-                name={serecord.Id}
+                label={selectedRecord.Name}
+                name={selectedRecord.Id}
                 onremove={removeRecord}
               >
                 <lightning-icon
                   icon-name={iconName}
                   variant="circle"
-                  alternative-text={serecord.Name}
+                  alternative-text={selectedRecord.Name}
                 ></lightning-icon>
               </lightning-pill>
             </span>
@@ -65,11 +65,15 @@
           role="listbox"
         >
           <ul class="slds-listbox slds-listbox_vertical" role="presentation">
-            <template for:each={searchRecords} for:item="obj">
-              <li key={obj.Id} role="presentation" class="slds-listbox__item">
+            <template for:each={searchWrappers} for:item="obj">
+              <li
+                key={obj.record.Id}
+                role="presentation"
+                class="slds-listbox__item"
+              >
                 <div
-                  data-id={obj.Id}
-                  data-name={obj.Name}
+                  data-id={obj.record.Id}
+                  data-name={obj.record.Name}
                   onclick={setSelectedRecord}
                   class="slds-media slds-listbox__option slds-listbox__option_entity slds-listbox__option_has-meta"
                   role="option"
@@ -89,11 +93,11 @@
                   <span style="pointer-events: none" class="slds-media__body">
                     <span
                       class="slds-listbox__option-text slds-listbox__option-text_entity"
-                      >{obj.Name}</span
+                      >{obj.record.Name}</span
                     >
                     <span
                       class="slds-listbox__option-meta slds-listbox__option-meta_entity"
-                      >Account • {obj.Name}</span
+                      >{obj.objName} • {obj.description}</span
                     >
                   </span>
                 </div>

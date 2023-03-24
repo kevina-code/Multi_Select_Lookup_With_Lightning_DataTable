@@ -2,21 +2,14 @@
 <LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
     <apiVersion>56.0</apiVersion>
     <isExposed>true</isExposed>
-    <masterLabel>Multi Select Lookup (template)</masterLabel>
+    <masterLabel>Multi Select Lookup</masterLabel>
     <description
-  >Custom Lookup box for user to enter name of record and select multiple records</description>
+  >Custom Lookup box for user to enter name of record (or other configured field) and select multiple records from search results</description>
     <targets>
         <target>lightning__RecordPage</target>
     </targets>
     <targetConfigs>
         <targetConfig targets="lightning__RecordPage">
-            <property
-        name="title"
-        label="Title"
-        type="String"
-        placeholder="Ex: Account Multi Select Lookup"
-        description="Enter the desired title of this instance of the component"
-      />
       <property
         name="iconName"
         label="Icon Name"
@@ -36,9 +29,8 @@
             <property
         name="fieldApiNames"
         type="String"
-        required="true"
-        label="Field API Names"
-        placeholder="Ex: Id, Name, AccountNumber"
+        label="Search Keys"
+        placeholder="Ex: Name, AccountNumber, Phone"
         description="Enter the fields to query"
       />
         </targetConfig>
