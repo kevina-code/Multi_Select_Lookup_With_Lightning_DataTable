@@ -15,19 +15,28 @@ public class MultiSelectLookupCtrl {
     String objApiName,
     String fieldApiNames
   ) {
-    Map<String, Schema.SObjectField> fieldMap = Schema.getGlobalDescribe()
-      .get(objApiName)
-      .getDescribe()
-      .fields.getMap();
+    try {
+      Map<String, Schema.SObjectField> fieldMap = Schema.getGlobalDescribe()
+        .get(objApiName)
+        .getDescribe()
+        .fields.getMap();
 
-    List<String> fieldLabels = new List<String>();
-    for (String fieldApiName : fieldApiNames.split(',')) {
-      Schema.DescribeFieldResult fieldResult = fieldMap.get(fieldApiName.trim())
-        .getDescribe();
-      fieldLabels.add(fieldResult.getLabel());
+      List<String> fieldLabels = new List<String>();
+      for (String fieldApiName : fieldApiNames.split(',')) {
+        Schema.DescribeFieldResult fieldResult = fieldMap.get(
+            fieldApiName.trim()
+          )
+          .getDescribe();
+        fieldLabels.add(fieldResult.getLabel());
+      }
+      return fieldLabels;
+    } catch (Exception e) {
+      throw new AuraHandledException(
+        e.getMessage() +
+        ', Stack Trace: ' +
+        e.getStackTraceString()
+      );
     }
-
-    return fieldLabels;
   }
 
   /**
