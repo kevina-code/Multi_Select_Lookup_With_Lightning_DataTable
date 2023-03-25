@@ -6,10 +6,14 @@
 import { LightningElement, api } from "lwc";
 
 export default class MultiSelectLookupWithDataTable extends LightningElement {
+  @api recordId;
+
+  // target configs:
   @api title;
   @api iconName;
   @api objApiName;
   @api fieldApiNames;
+  @api whereClause;
   @api actionsStr;
 
   selectedRecords = [];
