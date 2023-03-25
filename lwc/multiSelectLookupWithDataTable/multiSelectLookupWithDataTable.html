@@ -3,8 +3,10 @@
     <div class="slds-p-horizontal_small">
       <!-- multi select lookup -->
       <c-multi-select-lookup
+        record-id={recordId}
         obj-api-name={objApiName}
         field-api-names={fieldApiNames}
+        where-clause={whereClause}
         icon-name={iconName}
         onselected={handleSelectedRecords}
         placeholder="Lookup record..."
@@ -17,7 +19,6 @@
           field-api-names={fieldApiNames}
           actions-str={actionsStr}
           record-data={recordData}
-          placeholder="Lookup record..."
         >
         </c-dynamic-data-table>
       </template>
