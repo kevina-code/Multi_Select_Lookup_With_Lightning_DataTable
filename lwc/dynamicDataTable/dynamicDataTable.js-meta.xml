@@ -37,8 +37,8 @@
         type="String"
         required="true"
         label="Where Clause"
-        placeholder="Ex: WHERE Name LIKE %ABC% ORDER BY Name LIMIT 10"
-        description="Enter where clause to filter records"
+        placeholder="Examples: AccountId = :recordId; NAME LIKE '%ABC%'"
+        description="Enter where clause to filter records. Do not include WHERE in the value."
       />
       <property
         name="actionsStr"

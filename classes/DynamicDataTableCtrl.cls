@@ -15,7 +15,8 @@ public class DynamicDataTableCtrl {
   public static List<SObject> getRecords(
     String objApiName,
     String fieldApiNames,
-    String whereClause
+    String whereClause,
+    Id recordId
   ) {
     try {
       String queryStr =
@@ -23,7 +24,7 @@ public class DynamicDataTableCtrl {
         fieldApiNames +
         ' FROM ' +
         objApiName +
-        ' ' +
+        ' WHERE ' +
         whereClause;
       return Database.query(queryStr);
     } catch (exception e) {
@@ -90,8 +91,12 @@ public class DynamicDataTableCtrl {
     String property /*label vs type*/
   ) {
     try {
-      Map<String, Schema.SObjectField> fieldMap = ApexUtils.globalDescribe
-        .get(objApiName)
+      Map<String, Schema.SObjectField> fieldMap = ((SObject) Type.forName(
+            'Schema',
+            objApiName
+          )
+          .newInstance())
+        .getSObjectType()
         .getDescribe()
         .fields.getMap();
 

@@ -10,12 +10,18 @@ import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import retrieveSearchData from "@salesforce/apex/MultiSelectLookupCtrl.retrieveSearchData";
 
 export default class MultiSelectLookup extends LightningElement {
+  @api recordId;
+  @api Label;
+
+  // target configs:
+  @api iconName;
   @api objApiName;
   @api fieldApiNames;
-  @api Label;
+  @api whereClause;
+
   searchWrappers = [];
   selectedRecords = [];
-  @api iconName;
+
   messageFlag = false;
   isSearchLoading = false;
   @api placeholder = "Search..";
@@ -33,7 +39,9 @@ export default class MultiSelectLookup extends LightningElement {
       objApiName: this.objApiName,
       fieldApiNames: this.fieldApiNames,
       value: this.searchKey,
-      selectedRecordIds: selectedRecordIds
+      selectedRecordIds: selectedRecordIds,
+      whereClause: this.whereClause,
+      recordId: this.recordId
     })
       .then((result) => {
         this.searchWrappers = result;

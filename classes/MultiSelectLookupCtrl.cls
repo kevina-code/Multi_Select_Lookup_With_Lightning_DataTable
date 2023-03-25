@@ -6,9 +6,11 @@
 public class MultiSelectLookupCtrl {
   /**
    * @description: dynamically retrieve records based on user search input
-   * @param   objApiName    object API name set in the target config (ex: Account)
-   * @param   fieldApiNames string of field API names set in the target config (ex: Id, Name, AccountNumber)
-   * @param   value         user-entered value used to query records based on record name
+   * @param   objApiName    object API name to query records for
+   * @param   fieldApiNames string of field API names set in the target config (ex: Id, Name, Email, Phone)
+   * @param   value         user-entered value used to query records based on record name or other configured fields
+   * @param   parentIdField optional field to limit query results to child records belonging to the parent (ex: AccountId)
+   * @param   recordId      optional parent record id to limit query results
    * @return  records       queried records based on search performed by user
    */
   @AuraEnabled(cacheable=true)
@@ -16,7 +18,9 @@ public class MultiSelectLookupCtrl {
     String objApiName,
     String fieldApiNames,
     String value,
-    List<String> selectedRecordIds
+    List<String> selectedRecordIds,
+    String whereClause,
+    String recordId
   ) {
     List<Wrapper> wrappers = new List<Wrapper>();
     try {
@@ -59,7 +63,12 @@ public class MultiSelectLookupCtrl {
           }
           query += ')';
         }
-        query += ' AND ID NOT IN: selectedRecordIds order by CreatedDate DESC LIMIT 10';
+
+        // if whereClause specified in target config
+        if (whereClause != null && whereClause != '') {
+          query += ' AND ' + whereClause;
+        }
+        query += ' AND ID NOT IN: selectedRecordIds ORDER BY CreatedDate DESC LIMIT 10';
         for (SObject record : Database.Query(query)) {
           wrappers.add(new Wrapper(record, fieldApiNames));
         }

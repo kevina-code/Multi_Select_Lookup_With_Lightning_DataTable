@@ -20,7 +20,8 @@ private class DynamicDataTableCtrlTest {
     List<SObject> accts = DynamicDataTableCtrl.getRecords(
       'Account',
       'Id, Name, AccountNumber',
-      'WHERE Name != null'
+      'Name != null',
+      accounts[0].Id
     );
     Test.stopTest();
 
