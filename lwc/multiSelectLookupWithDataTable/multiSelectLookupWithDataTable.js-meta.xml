@@ -42,6 +42,13 @@
         description="Enter the fields to query"
       />
       <property
+        name="whereClause"
+        type="String"
+        label="Where Clause"
+        placeholder="Examples: AccountId = :recordId; Name LIKE '%ABC%'; etc..."
+        description="Optionally enter where clause to filter records. Do not include 'WHERE' in this field."
+      />
+      <property
         name="actionsStr"
         type="String"
         label="Actions"
