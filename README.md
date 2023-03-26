@@ -1,4 +1,4 @@
-# Multi-Select-Lookup-with-Lightning-Data-Table\
+# Multi-Select-Lookup-with-Lightning-Data-Table
 
 Object-agnostic multi select lookup that dynamically drives a lightning data table.
 * Leverages [lightning-datatable](https://developer.salesforce.com/docs/component-library/bundle/lightning-datatable/example)
@@ -17,3 +17,5 @@ Deploy to Salesforce: https://live.playg.app/play/reusable-multiselect-lookup-th
 ![image](https://user-images.githubusercontent.com/124932501/227801225-993e07b1-6d49-4f21-9c91-7722d2ce4e9a.png)
 
 ![image](https://user-images.githubusercontent.com/124932501/227801245-2a9187a6-fe95-4048-9266-881ce0d5d802.png)
+
+![image](https://user-images.githubusercontent.com/124932501/227801599-e5beba62-d1d8-468e-9f2d-940aa1e6fb9e.png)
