@@ -23,7 +23,8 @@ private class MultiSelectLookupCtrlTest {
       'ABC',
       new List<Id>{ accounts[1].Id },
       'Name != null',
-      accounts[1].Id
+      accounts[1].Id,
+      10
     );
     Test.stopTest();
 

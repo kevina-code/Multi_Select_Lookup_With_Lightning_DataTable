@@ -20,7 +20,8 @@ public class MultiSelectLookupCtrl {
     String value,
     List<String> selectedRecordIds,
     String whereClause,
-    String recordId
+    String recordId,
+    Integer recordLimit
   ) {
     List<Wrapper> wrappers = new List<Wrapper>();
     try {
@@ -68,7 +69,10 @@ public class MultiSelectLookupCtrl {
         if (whereClause != null && whereClause != '') {
           query += ' AND ' + whereClause;
         }
-        query += ' AND ID NOT IN: selectedRecordIds ORDER BY CreatedDate DESC LIMIT 10';
+        query +=
+          ' AND ID NOT IN: selectedRecordIds ORDER BY CreatedDate DESC LIMIT ' +
+          recordLimit;
+        System.debug('query: ' + query);
         for (SObject record : Database.Query(query)) {
           wrappers.add(new Wrapper(record, fieldApiNames));
         }
