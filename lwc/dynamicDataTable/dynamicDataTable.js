@@ -53,14 +53,23 @@ export default class DynamicDataTable extends NavigationMixin(
     ["STRING", "text"],
     ["BOOLEAN", "boolean"],
     ["CURRENCY", "currency"],
+    ["COMBOBOX", "text"],
+    ["DATACATEGORYGROUPREFERENCE", "text"],
+    ["ID", "text"],
     ["DATE", "date"],
     ["DATETIME", "date"],
+    ["INTEGER", "number"],
+    ["LONG", "number"],
     ["DECIMAL", "number"],
     ["DOUBLE", "number"],
     ["EMAIL", "email"],
     ["PERCENT", "percent"],
     ["PHONE", "phone"],
     ["PICKLIST", "text"],
+    ["MULTIPICKLIST", "text"],
+    ["REFERENCE", "id"],
+    ["TEXTAREA", "text"],
+    ["TIME", "text"],
     ["URL", "url"]
   ]);
 
@@ -76,7 +85,6 @@ export default class DynamicDataTable extends NavigationMixin(
   wiredRecords(result) {
     console.log("wiredRecords error", result.error);
     console.log("wiredRecords result.data", result.data);
-    console.log("recordId: ", this.recordId);
     if (result.data) {
       let tempRecList = [];
       result.data.forEach((record) => {
