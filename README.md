@@ -12,6 +12,22 @@ Object-agnostic multi select lookup that dynamically drives a lightning data tab
 
 Deploy to Salesforce: https://live.playg.app/play/reusable-multiselect-lookup-that-20230325
 
+```html
+<c-multi-select-lookup-with-data-table
+    title="Contact lookup/selection"
+    icon-name="standard:contact"
+    obj-api-name="Contact"
+    field-paths="Id, Name, Phone, Email"
+    field-paths-for-search="Name, Email"
+    where-clause="AccountId = :recordId ORDER BY Name"
+    actions-str="view, edit"
+    record-id={recordId}
+    placeholder="Lookup record..."
+    onrowstoggled={rowToggleHandler} <!-- name of your method to run when user toggles the checkbox on a row -->
+   >
+</c-multi-select-lookup-with-data-table>
+```
+
 ![image](https://user-images.githubusercontent.com/124932501/227801209-91b19675-9e83-4a60-b563-eabb4277bf76.png)
 
 ![image](https://user-images.githubusercontent.com/124932501/227801225-993e07b1-6d49-4f21-9c91-7722d2ce4e9a.png)
