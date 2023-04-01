@@ -5,6 +5,12 @@
     data-source="lookupContainer"
   >
     <div class="slds-combobox_container slds-has-selection">
+      <div if:true={inputDisabled}>
+        <lightning-spinner
+          size="large"
+          alternative-text="Loading..."
+        ></lightning-spinner>
+      </div>
       <label class="slds-form-element__label" for="combobox-id-1"
         >{label}</label
       >
@@ -25,6 +31,7 @@
               data-id="userinput"
               name="searchText"
               is-loading={isSearchLoading}
+              disabled={inputDisabled}
               value={searchKey}
               variant="label-hidden"
               placeholder={placeholder}
@@ -65,7 +72,7 @@
           role="listbox"
         >
           <ul class="slds-listbox slds-listbox_vertical" role="presentation">
-            <template for:each={searchWrappers} for:item="obj">
+            <template for:each={searchResultWrappers} for:item="obj">
               <li
                 key={obj.record.Id}
                 role="presentation"

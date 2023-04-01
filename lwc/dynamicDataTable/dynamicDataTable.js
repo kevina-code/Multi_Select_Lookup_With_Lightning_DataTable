@@ -6,27 +6,33 @@
 import { LightningElement, api, wire } from "lwc";
 import { NavigationMixin } from "lightning/navigation";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
-import getRecords from "@salesforce/apex/DynamicDataTableCtrl.getRecords";
-import getFieldLabels from "@salesforce/apex/DynamicDataTableCtrl.getFieldLabels";
-import getFieldTypes from "@salesforce/apex/DynamicDataTableCtrl.getFieldTypes";
-import getFieldUpdateables from "@salesforce/apex/DynamicDataTableCtrl.getFieldUpdateables";
+import { deleteRecord } from "lightning/uiRecordApi";
+import getRecordWrappers from "@salesforce/apex/DynamicDataTableCtrl.getRecordWrappers";
+import getTableProperties from "@salesforce/apex/DynamicDataTableCtrl.getTableProperties";
 
 export default class DynamicDataTable extends NavigationMixin(
   LightningElement
 ) {
   @api recordId;
+  @api hasLoaded = false;
 
   // target configs:
   @api title;
   @api objApiName;
-  @api fieldApiNames;
+  @api fieldPaths;
   @api whereClause;
+  @api recordLimit;
+  @api hideCheckboxColumn;
   @api actionsStr;
 
   @api recordData = [];
-  fieldLabels = [];
+  columnHeaders = [];
   fieldTypes = [];
   fieldUpdateables = [];
+  @api linkifiedColumns = [];
+
+  selectedRowIds = [];
+  preselectedContactRow = ["0035w000036mj7oAAA"];
 
   get actions() {
     let actionsList = [];
@@ -76,23 +82,18 @@ export default class DynamicDataTable extends NavigationMixin(
   /**
    * get records to populate lightning data table with
    */
-  @wire(getRecords, {
+  @wire(getRecordWrappers, {
     objApiName: "$objApiName",
-    fieldApiNames: "$fieldApiNames",
+    fieldPaths: "$fieldPaths",
     whereClause: "$whereClause",
     recordId: "$recordId"
   })
-  wiredRecords(result) {
+  wiredRecordWrappers(result) {
     console.log("wiredRecords error", result.error);
     console.log("wiredRecords result.data", result.data);
     if (result.data) {
-      let tempRecList = [];
-      result.data.forEach((record) => {
-        let tempRec = Object.assign({}, record);
-        tempRec.RecName = "/" + tempRec.Id;
-        tempRecList.push(tempRec);
-      });
-      this.recordData = tempRecList;
+      this.hasLoaded = true;
+      this.recordData = this.assimilateRecordData(result.data);
     } else if (result.error) {
       console.log("wiredRecords error", result.error.body.message);
       this.dispatchEvent(
@@ -105,71 +106,53 @@ export default class DynamicDataTable extends NavigationMixin(
     }
   }
 
-  /**
-   * get field labels to populate lightning data table columns with
-   */
-  @wire(getFieldLabels, {
-    objApiName: "$objApiName",
-    fieldApiNames: "$fieldApiNames"
-  })
-  wiredFieldLables(result) {
-    console.log("wiredFieldLables error", result.error);
-    console.log("wiredFieldLables result.data", result.data);
-    if (result.data) {
-      this.fieldLabels = result.data;
-    } else if (result.error) {
-      console.log("wiredFieldLables error", result.error.body.message);
-      this.dispatchEvent(
-        new ShowToastEvent({
-          title: "Error retrieving field labels",
-          message: result.error.body.message,
-          variant: "error"
-        })
-      );
-    }
+  // assimilate records with custom properties
+  assimilateRecordData(items) {
+    let tempRecList = [];
+    items.forEach((recordWrapper) => {
+      let tempRec = Object.assign({}, recordWrapper.record);
+      for (const prop in recordWrapper.fieldPropertyMap) {
+        if (
+          Object.prototype.hasOwnProperty.call(
+            recordWrapper.fieldPropertyMap,
+            prop
+          )
+        ) {
+          const fieldProperty = recordWrapper.fieldPropertyMap[prop];
+          tempRec[fieldProperty.columnHeader] = fieldProperty.fieldValue;
+          if (fieldProperty.linkId) {
+            this.linkifiedColumns.push(fieldProperty.columnHeader);
+            tempRec[fieldProperty.columnHeader] = "/" + fieldProperty.linkId;
+            tempRec[fieldProperty.linkLabel] = fieldProperty.fieldValue;
+          }
+        }
+      }
+      tempRec.objName = recordWrapper.objName;
+      tempRec.RecName = "/" + tempRec.Id;
+      tempRecList.push(tempRec);
+    });
+    return tempRecList;
   }
 
   /**
-   * get field types to format lightning data table cell values with
+   * get field properties to apply to lightning data table
    */
-  @wire(getFieldTypes, {
+  @wire(getTableProperties, {
     objApiName: "$objApiName",
-    fieldApiNames: "$fieldApiNames"
+    fieldPaths: "$fieldPaths"
   })
-  wiredFieldTypes(result) {
-    console.log("wiredFieldTypes error", result.error);
-    console.log("wiredFieldTypes result.data", result.data);
+  wiredFieldProperties(result) {
+    console.log("wiredFieldProperties error", result.error);
+    console.log("wiredFieldProperties result.data", result.data);
     if (result.data) {
-      this.fieldTypes = result.data;
+      this.columnHeaders = result.data.columnHeaders;
+      this.fieldTypes = result.data.fieldTypes;
+      this.fieldUpdateables = result.data.fieldUpdateables;
     } else if (result.error) {
-      console.log("wiredFieldTypes error", result.error.body.message);
+      console.log("wiredFieldProperties error", result.error.body.message);
       this.dispatchEvent(
         new ShowToastEvent({
-          title: "Error retrieving field labels",
-          message: result.error.body.message,
-          variant: "error"
-        })
-      );
-    }
-  }
-
-  /**
-   * get whether field is updateable to conditionally enable edit access on table cell
-   */
-  @wire(getFieldUpdateables, {
-    objApiName: "$objApiName",
-    fieldApiNames: "$fieldApiNames"
-  })
-  wiredFieldUpdateables(result) {
-    console.log("wiredFieldUpdateables error", result.error);
-    console.log("wiredFieldUpdateables result.data", result.data);
-    if (result.data) {
-      this.fieldUpdateables = result.data;
-    } else if (result.error) {
-      console.log("wiredFieldUpdateables error", result.error.body.message);
-      this.dispatchEvent(
-        new ShowToastEvent({
-          title: "Error retrieving field updateables",
+          title: "Error retrieving field properties",
           message: result.error.body.message,
           variant: "error"
         })
@@ -178,40 +161,116 @@ export default class DynamicDataTable extends NavigationMixin(
   }
 
   get columns() {
-    const fieldApiNameArray = this.fieldApiNames.replace(/\s/g, "").split(",");
-    let columnList = [];
-    for (let i = 0; i < fieldApiNameArray.length; i++) {
-      const fieldApiName = fieldApiNameArray[i];
-      if (fieldApiName.toUpperCase() !== "ID") {
-        let obj = {};
-        obj["label"] = this.fieldLabels[i];
-        obj["type"] = this.typeMap.get(this.fieldTypes[i]);
-        obj["editable"] = this.fieldUpdateables[i] === "true";
-        obj["sortable"] = true;
-        if (fieldApiName.toUpperCase() !== "NAME") {
-          obj["fieldName"] = fieldApiName;
-        } else {
-          obj["fieldName"] = "RecName";
-          obj["type"] = "url";
-          obj["typeAttributes"] = {
-            label: { fieldName: "Name" },
-            target: "_blank"
-          };
+    try {
+      const fieldApiNameArray = this.fieldPaths.replace(/\s/g, "").split(",");
+
+      let columnList = [];
+      for (let i = 0; i < fieldApiNameArray.length; i++) {
+        const fieldApiName = fieldApiNameArray[i];
+        if (fieldApiName.toUpperCase() !== "ID") {
+          let column = {};
+          column.label = this.columnHeaders[i];
+          column.type = this.typeMap.get(this.fieldTypes[i]);
+          column.editable = this.fieldUpdateables[i];
+          column.sortable = true;
+          if (fieldApiName.toUpperCase() === "NAME") {
+            column.fieldName = "RecName";
+            column.type = "url";
+            column.typeAttributes = {
+              label: { fieldName: "Name" },
+              target: "_blank"
+            };
+          } else {
+            column.fieldName = this.columnHeaders[i];
+            if (this.linkifiedColumns.includes(this.columnHeaders[i])) {
+              column.label = this.columnHeaders[i];
+              column.fieldName = this.columnHeaders[i];
+              column.type = "url";
+              column.typeAttributes = {
+                label: { fieldName: this.columnHeaders[i] + "^_^" + i },
+                target: "_blank"
+              };
+            }
+          }
+          columnList.push(column);
         }
-        columnList.push(obj);
       }
-    }
 
-    if (this.actions.length) {
-      columnList.push({
-        type: "action",
-        typeAttributes: {
-          rowActions: this.actions,
-          menuAlignment: "right"
-        }
-      });
+      if (this.actions.length) {
+        columnList.push({
+          type: "action",
+          typeAttributes: {
+            rowActions: this.actions,
+            menuAlignment: "right"
+          }
+        });
+      }
+      return columnList;
+    } catch (error) {
+      console.log("columns error: ", error);
     }
+  }
 
-    return columnList;
+  // handle when user selects row from data table
+  handleRowSelection(event) {
+    const selectedRows = event.detail.selectedRows;
+    console.log("selectedRows: ", JSON.stringify(selectedRows));
+    this.selectedRowIds = selectedRows.map((record) => record.id);
+    const rowsToggledEvent = new CustomEvent("rowstoggled", {
+      detail: { selectedRows }
+    });
+    this.dispatchEvent(rowsToggledEvent);
+  }
+
+  // handle when user performs action (view, edit, delete) on data table row
+  handleRowAction(event) {
+    const actionName = event.detail.action.name;
+    const row = event.detail.row;
+    switch (actionName) {
+      case "view":
+        this[NavigationMixin.Navigate]({
+          type: "standard__recordPage",
+          attributes: {
+            recordId: row.Id,
+            actionName: "view"
+          }
+        });
+        break;
+      case "edit":
+        this[NavigationMixin.Navigate]({
+          type: "standard__recordPage",
+          attributes: {
+            recordId: row.Id,
+            objectApiName: row.objName,
+            actionName: "edit"
+          }
+        });
+        break;
+      case "delete":
+        deleteRecord(row.Id)
+          .then(() => {
+            this.recordData = this.recordData.filter(function (record) {
+              return record.Id !== row.Id;
+            });
+            this.dispatchEvent(
+              new ShowToastEvent({
+                title: "Record Deleted",
+                message: "Record deleted successfully",
+                variant: "success"
+              })
+            );
+          })
+          .catch((error) => {
+            this.dispatchEvent(
+              new ShowToastEvent({
+                title: "Error retrieving record data",
+                message: "Unable to delete record due to " + error.body.message,
+                variant: "error"
+              })
+            );
+          });
+        break;
+      default:
+    }
   }
 }

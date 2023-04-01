@@ -7,26 +7,37 @@ public class DynamicDataTableCtrl {
   /**
    * @description: get records based on target configs configured by admin
    * @param     objApiName      object API name configured in LWC target config
-   * @param     fieldApiNames   comma delimited string of field API names confiured in LWC target config
+   * @param     fieldPaths      comma delimited string of field API names confiured in LWC target config
    * @param     whereClause     where clause configured in LWC target config
-   * @return    list of queried SObject records
+   * @return    recordWrappers  wrappers containing records and other info about the records
    */
   @AuraEnabled(cacheable=true)
-  public static List<SObject> getRecords(
+  public static List<RecordDataModels.RecordWrapper> getRecordWrappers(
     String objApiName,
-    String fieldApiNames,
+    String fieldPaths,
     String whereClause,
     Id recordId
   ) {
     try {
       String queryStr =
         'SELECT ' +
-        fieldApiNames +
+        fieldPaths +
         ' FROM ' +
         objApiName +
         ' WHERE ' +
         whereClause;
-      return Database.query(queryStr);
+
+      List<RecordDataModels.RecordWrapper> recordWrappers = new List<RecordDataModels.RecordWrapper>();
+      for (SObject record : Database.query(queryStr)) {
+        recordWrappers.add(
+          new RecordDataModels.RecordWrapper(
+            record,
+            fieldPaths,
+            FieldUtils.getColumnHeaders(objApiName, fieldPaths)
+          )
+        );
+      }
+      return recordWrappers;
     } catch (exception e) {
       throw new AuraHandledException(
         e.getMessage() +
@@ -37,89 +48,43 @@ public class DynamicDataTableCtrl {
   }
 
   /**
-   * @description: dynamically retrieve field labels
-   * @param   objApiName    object API name set in the target config (ex: Account)
-   * @param   fieldApiNames string of field API names set in the target config (ex: Id, Name, AccountNumber)
-   * @return  a list of field labels
+   * data structure to store properties for the lightning data table
    */
-  @AuraEnabled(cacheable=true)
-  public static List<String> getFieldLabels(
-    String objApiName,
-    String fieldApiNames
-  ) {
-    return getFieldInfo(objApiName, FieldApiNames, 'label');
+  public class TableProperties {
+    @AuraEnabled
+    public List<String> columnHeaders = new List<String>();
+    @AuraEnabled
+    public List<String> fieldTypes = new List<String>();
+    @AuraEnabled
+    public List<Boolean> fieldUpdateables = new List<Boolean>();
   }
 
   /**
-   * @description: dynamically retrieve field types
-   * @param   objApiName    object API name set in the target config/LWC params (ex: Account)
-   * @param   fieldApiNames string of field API names set in the target config/LWC params (ex: Id, Name, AccountNumber)
-   * @return  a list of field types
+   * @description: get field properties for fields defined in config
+   * @param   objApiName        object API Name
+   * @param   fieldPaths        comma delimited string of field paths (ex: Id, Name, Phone, Email, Account.Name)
+   * @param   columnHeaders     column headers (ex: Id, Full Name, Business Phone, Email, Account Name)
+   * @return  TableProperties   table properties storing column headers, fieldTypes, fieldUpdateables
    */
   @AuraEnabled(cacheable=true)
-  public static List<String> getFieldTypes(
+  public static TableProperties getTableProperties(
     String objApiName,
-    String fieldApiNames
-  ) {
-    return getFieldInfo(objApiName, FieldApiNames, 'type');
-  }
-
-  /**
-   * @description: dynamically retrieve whether field is updateable or not
-   * @param   objApiName    object API name set in the target config/LWC params (ex: Account)
-   * @param   fieldApiNames string of field API names set in the target config/LWC params (ex: Id, Name, AccountNumber)
-   * @return  a list of String booleans
-   */
-  @AuraEnabled(cacheable=true)
-  public static List<String> getFieldUpdateables(
-    String objApiName,
-    String fieldApiNames
-  ) {
-    return getFieldInfo(objApiName, FieldApiNames, 'updateable');
-  }
-
-  /**
-   * @description: dynamically retrieve field labels or field types
-   * @param   objApiName    object API name set in the target config (ex: Account)
-   * @param   fieldApiNames string of field API names set in the target config (ex: Id, Name, AccountNumber)
-   * @param   property      whether to retrieve field labels vs field types
-   * @return  fieldLabels   a list of field labels based on fields configured in the fieldApiNames target config/LWC params
-   */
-  private static List<String> getFieldInfo(
-    String objApiName,
-    String fieldApiNames,
-    String property /*label vs type*/
+    String fieldPaths
   ) {
     try {
-      Map<String, Schema.SObjectField> fieldMap = ((SObject) Type.forName(
-            'Schema',
-            objApiName
-          )
-          .newInstance())
-        .getSObjectType()
-        .getDescribe()
-        .fields.getMap();
-
-      List<String> fieldInfos = new List<String>();
-      for (String fieldApiName : fieldApiNames.split(',')) {
-        Schema.DescribeFieldResult fieldResult = fieldMap.get(
-            fieldApiName.trim()
-          )
-          .getDescribe();
-        if (property == 'label') {
-          fieldInfos.add(fieldResult.getLabel());
-        } else if (property == 'type') {
-          fieldInfos.add(String.valueOf(fieldResult.getType()));
-        } else if (property == 'updateable') {
-          fieldInfos.add(
-            String.valueof(
-              fieldMap.get(fieldApiName.trim()).getDescribe().isUpdateable()
-            )
-          );
-        }
+      TableProperties tableProperties = new TableProperties();
+      for (String fieldPath : fieldPaths.split(',')) {
+        fieldPath = fieldPath.trim();
+        FieldUtils.ColumnProperties columnProperties = FieldUtils.getColumnProperties(
+          objApiName,
+          fieldPath
+        );
+        tableProperties.columnHeaders.add(columnProperties.columnHeaderLabel);
+        tableProperties.fieldTypes.add(columnProperties.fieldType);
+        tableProperties.fieldUpdateables.add(columnProperties.isUpdateable);
       }
 
-      return fieldInfos;
+      return tableProperties;
     } catch (exception e) {
       throw new AuraHandledException(
         e.getMessage() +

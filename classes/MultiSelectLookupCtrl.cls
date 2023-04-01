@@ -6,75 +6,50 @@
 public class MultiSelectLookupCtrl {
   /**
    * @description: dynamically retrieve records based on user search input
-   * @param   objApiName    object API name to query records for
-   * @param   fieldApiNames string of field API names set in the target config (ex: Id, Name, Email, Phone)
-   * @param   value         user-entered value used to query records based on record name or other configured fields
-   * @param   parentIdField optional field to limit query results to child records belonging to the parent (ex: AccountId)
-   * @param   recordId      optional parent record id to limit query results
-   * @return  records       queried records based on search performed by user
+   * @param   objApiName          object API name to query records for
+   * @param   fieldPaths          string of field API names and field paths set in the target config (ex: Id, Name, Email, Phone, Account.Name)
+   * @param   fieldPathsForSearch fields to based search off of (default is Name)
+   * @param   value               user-entered value used to query records based on record name or other configured fields
+   * @param   parentIdField       optional field to limit query results to child records belonging to the parent (ex: AccountId)
+   * @param   recordId            optional parent record id to limit query results
+   * @return  records             queried records based on search performed by user
    */
   @AuraEnabled(cacheable=true)
-  public static List<Wrapper> retrieveSearchData(
+  public static List<RecordDataModels.RecordWrapper> retrieveSearchData(
     String objApiName,
-    String fieldApiNames,
+    String fieldPaths,
+    String fieldPathsForSearch,
     String value,
     List<String> selectedRecordIds,
     String whereClause,
     String recordId,
     Integer recordLimit
   ) {
-    List<Wrapper> wrappers = new List<Wrapper>();
+    List<RecordDataModels.RecordWrapper> recordWrappers = new List<RecordDataModels.RecordWrapper>();
     try {
       if (selectedRecordIds == null) {
         selectedRecordIds = new List<String>();
       }
-      if (String.isNotEmpty(value)) {
-        String query = 'SELECT Id, Name';
-        if (fieldApiNames != null) {
-          for (String fieldApiName : fieldApiNames.split(',')) {
-            if (
-              fieldApiName.trim().toUpperCase() != 'ID' &&
-              fieldApiName.trim().toUpperCase() != 'NAME'
-            ) {
-              query += ', ' + fieldApiName.trim();
-            }
-          }
-        }
-        query +=
-          ' FROM ' +
-          objApiName +
-          ' WHERE (Name LIKE \'%' +
-          value.trim() +
-          '%\'';
-        if (fieldApiNames == null) {
-          query += ')';
-        } else {
-          for (String fieldApiName : fieldApiNames.split(',')) {
-            if (
-              fieldApiName.trim().toUpperCase() != 'ID' &&
-              fieldApiName.trim().toUpperCase() != 'NAME'
-            ) {
-              query +=
-                ' OR ' +
-                fieldApiName +
-                ' LIKE \'%' +
-                value.trim() +
-                '%\'';
-            }
-          }
-          query += ')';
-        }
 
-        // if whereClause specified in target config
-        if (whereClause != null && whereClause != '') {
-          query += ' AND ' + whereClause;
-        }
-        query +=
-          ' AND ID NOT IN: selectedRecordIds ORDER BY CreatedDate DESC LIMIT ' +
-          recordLimit;
-        System.debug('query: ' + query);
-        for (SObject record : Database.Query(query)) {
-          wrappers.add(new Wrapper(record, fieldApiNames));
+      if (String.isNotEmpty(value)) {
+        String queryStr = buildQueryString(
+          objApiName,
+          fieldPaths,
+          fieldPathsForSearch,
+          value,
+          selectedRecordIds,
+          whereClause,
+          recordId,
+          recordLimit
+        );
+        for (SObject record : Database.Query(queryStr)) {
+          recordWrappers.add(
+            new RecordDataModels.RecordWrapper(
+              record,
+              fieldPaths,
+              FieldUtils.getColumnHeaders(objApiName, fieldPaths)
+            )
+          );
         }
       }
     } catch (Exception e) {
@@ -86,57 +61,60 @@ public class MultiSelectLookupCtrl {
       System.debug(msg);
       throw new AuraHandledException(msg);
     }
-    return wrappers;
+    return recordWrappers;
   }
 
   /**
-   * wrapper class to store additional properties alongside record
+   * @description: build dynamic query based on target configs/params and search value
+   * @param   same parameters as retrieveSearchData method
+   * @return  queryStr   the assembled query
    */
-  public class Wrapper {
-    @AuraEnabled
-    public SObject record;
-    @AuraEnabled
-    public String objName;
-    @AuraEnabled
-    public String description;
-
-    public Wrapper(SObject record, String fieldApiNames) {
-      Schema.DescribeSObjectResult describe = ((SObject) Type.forName(
-            'Schema',
-            String.valueOf(record.getSObjectType())
-          )
-          .newInstance())
-        .getSObjectType()
-        .getDescribe();
-      this.record = record;
-      this.objName = describe.getLabel();
-      this.description = getDescription(record, fieldApiNames, describe);
-    }
-
-    public String getDescription(
-      SObject record,
-      String fieldApiNames,
-      Schema.DescribeSObjectResult describe
-    ) {
-      String description = String.valueOf(record.get('Name'));
-      if (fieldApiNames != null) {
-        for (String fieldApiName : fieldApiNames.split(',')) {
-          if (
-            fieldApiName.trim().toUpperCase() != 'ID' &&
-            fieldApiName.trim().toUpperCase() != 'NAME'
-          ) {
-            Schema.DescribeFieldResult fieldResult = describe.fields.getMap()
-              .get(fieldApiName.trim())
-              .getDescribe();
-            description +=
-              ' —	' +
-              fieldResult.getLabel() +
-              ': ' +
-              String.valueOf(record.get(fieldApiName.trim()));
-          }
+  private static String buildQueryString(
+    String objApiName,
+    String fieldPaths,
+    String fieldPathsForSearch,
+    String value,
+    List<String> selectedRecordIds,
+    String whereClause,
+    String recordId,
+    Integer recordLimit
+  ) {
+    String queryStr = 'SELECT Id, Name';
+    if (fieldPaths != null) {
+      for (String fieldPath : fieldPaths.split(',')) {
+        if (
+          fieldPath.trim().toUpperCase() != 'ID' &&
+          fieldPath.trim().toUpperCase() != 'NAME'
+        ) {
+          queryStr += ', ' + fieldPath.trim();
         }
       }
-      return description;
     }
+    queryStr +=
+      ' FROM ' +
+      objApiName +
+      ' WHERE (Name LIKE \'%' +
+      value.trim() +
+      '%\'';
+
+    // loop through fields to bind to search
+    for (String fieldPath : fieldPathsForSearch.split(',')) {
+      if (
+        fieldPath.trim().toUpperCase() != 'ID' &&
+        fieldPath.trim().toUpperCase() != 'NAME'
+      ) {
+        queryStr += ' OR ' + fieldPath + ' LIKE \'%' + value.trim() + '%\'';
+      }
+    }
+    queryStr += ')';
+
+    // if whereClause specified in target config
+    if (whereClause != null && whereClause != '') {
+      queryStr += ' AND ' + whereClause;
+    }
+    queryStr +=
+      ' AND ID NOT IN: selectedRecordIds ORDER BY CreatedDate DESC LIMIT ' +
+      recordLimit;
+    return queryStr;
   }
 }

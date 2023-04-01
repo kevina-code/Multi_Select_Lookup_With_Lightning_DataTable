@@ -1,13 +1,29 @@
 <template>
   <div class="slds-p-horizontal_small">
     <div class="slds-m-top_medium">
-      <lightning-datatable
-        key-field="id"
-        data={recordData}
-        hide-checkbox-column
-        columns={columns}
-      >
-      </lightning-datatable>
+      <div if:true={hideCheckboxColumn}>
+        <lightning-datatable
+          key-field="id"
+          data={recordData}
+          columns={columns}
+          onrowselection={handleRowSelection}
+          onrowaction={handleRowAction}
+          selected-rows={preselectedContactRow}
+          hide-checkbox-column
+        >
+        </lightning-datatable>
+      </div>
+      <div if:false={hideCheckboxColumn}>
+        <lightning-datatable
+          key-field="id"
+          data={recordData}
+          columns={columns}
+          onrowselection={handleRowSelection}
+          onrowaction={handleRowAction}
+          selected-rows={preselectedContactRow}
+        >
+        </lightning-datatable>
+      </div>
     </div>
   </div>
 </template>

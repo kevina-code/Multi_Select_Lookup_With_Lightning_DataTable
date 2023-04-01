@@ -7,30 +7,27 @@ import { LightningElement, api } from "lwc";
 
 export default class MultiSelectLookupWithDataTable extends LightningElement {
   @api recordId;
+  @api hasLoaded;
 
   // target configs:
   @api title;
   @api iconName;
   @api objApiName;
-  @api fieldApiNames;
+  @api fieldPaths;
+  @api fieldPathsForSearch;
   @api whereClause;
   @api actionsStr;
 
-  selectedRecords = [];
-  selectedRecordsLength;
+  searchResultRecordsLength;
   recordData = [];
+  linkifiedColumns = [];
 
   handleSelectedRecords(event) {
-    this.selectedRecords = [...event.detail.selRecords];
-
-    let tempRecList = [];
-    this.selectedRecords.forEach((record) => {
-      let tempRec = Object.assign({}, record);
-      tempRec.RecName = "/" + tempRec.Id;
-      tempRecList.push(tempRec);
-    });
-    this.recordData = tempRecList;
-
-    this.selectedRecordsLength = this.selectedRecords.length;
+    this.hasLoaded = false;
+    const selectedRecords = [...event.detail.selectedRecs];
+    this.recordData = selectedRecords;
+    this.linkifiedColumns = [...event.detail.linkifiedColumns];
+    this.searchResultRecordsLength = selectedRecords.length;
+    this.hasLoaded = true;
   }
 }

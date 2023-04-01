@@ -7,6 +7,7 @@
   >Custom Lookup box for user to enter name of record (or other configured field) and select multiple records from search results</description>
     <targets>
         <target>lightning__RecordPage</target>
+        <target>lightning__FlowScreen</target>
     </targets>
     <targetConfigs>
         <targetConfig targets="lightning__RecordPage">
@@ -15,7 +16,7 @@
         label="Icon Name"
         required="true"
         type="String"
-        placeholder="Ex: standard:account"
+        placeholder="Ex: standard:contact"
         description="Enter the name of the icon to be used on the queried/selected records."
       />
             <property
@@ -23,15 +24,26 @@
         label="Object API Name"
         required="true"
         type="String"
-        placeholder="Ex: Account"
+        placeholder="Ex: Contact"
         description="Enter the object API Name to query records for when search is performed."
+        datasource="apex://ObjPicklist"
       />
-            <property
-        name="fieldApiNames"
+      <property
+        name="fieldPaths"
         type="String"
-        label="Field API Names"
-        placeholder="Ex: Name, Email, AccountNumber"
-        description="Optionally enter fields here. These will bind to the search query in the lookup."
+        required="true"
+        label="Field API Names and field paths"
+        placeholder="Ex: Id, Name, Phone, Email, Account.Name"
+        description="Enter a comma delimited list of fields/paths to query"
+      />
+      <property
+        name="fieldPathsForSearch"
+        type="String"
+        default="Name"
+        required="true"
+        label="Fields and field paths to base search off of"
+        placeholder="Ex: Id, Name, Phone, Email, Account.Name"
+        description="Enter a comma delimited list of fields/paths to base search off of (default is name)"
       />
       <property
         name="whereClause"
@@ -41,5 +53,54 @@
         description="Optionally enter where clause to filter records. Do not include 'WHERE' in this field."
       />
         </targetConfig>
+        <targetConfig targets="lightning__FlowScreen">
+          <property
+        name="iconName"
+        label="Icon Name"
+        required="true"
+        type="String"
+        placeholder="Ex: standard:contact"
+        description="Enter the name of the icon to be used on the queried/selected records."
+      />
+                <property
+        name="objApiName"
+        label="Object API Name"
+        required="true"
+        type="String"
+        placeholder="Ex: Contact"
+        description="Enter the object API Name to query records for when search is performed."
+      />
+      <property
+        name="fieldPaths"
+        type="String"
+        required="true"
+        label="Field API Names and field paths"
+        placeholder="Ex: Id, Name, Phone, Email, Account.Name"
+        description="Enter a comma delimited list of fields/paths to query"
+      />
+      <property
+        name="fieldPathsForSearch"
+        type="String"
+        default="Name"
+        required="true"
+        label="Fields and field paths to base search off of"
+        placeholder="Ex: Id, Name, Phone, Email, Account.Name"
+        description="Enter a comma delimited list of fields/paths to base search off of (default is name)"
+      />
+          <property
+        name="whereClause"
+        type="String"
+        label="Where Clause"
+        placeholder="Examples: AccountId = :recordId; Name LIKE '%ABC%'; etc..."
+        description="Optionally enter where clause to filter records. Do not include 'WHERE' in this field."
+      />
+          <property
+        name="recordId"
+        type="String"
+        label="Record Id"
+        placeholder="Ex: view, edit, delete"
+        description="Only needed for screen flows. Pass from Lightning Record Page."
+      />
+            </targetConfig>
     </targetConfigs>
 </LightningComponentBundle>

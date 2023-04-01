@@ -7,6 +7,7 @@
   >Multi select lookup box for user to enter name of record and select multiple records while driving data table</description>
     <targets>
         <target>lightning__RecordPage</target>
+        <target>lightning__FlowScreen</target>
     </targets>
     <targetConfigs>
         <targetConfig targets="lightning__RecordPage">
@@ -14,7 +15,7 @@
         name="title"
         label="Title"
         type="String"
-        placeholder="Ex: Account Multi Select Lookup"
+        placeholder="Ex: Contacts lookup and selection"
         description="Enter the desired title of this instance of the component"
       />
       <property
@@ -22,7 +23,7 @@
         label="Icon Name"
         required="true"
         type="String"
-        placeholder="Ex: standard:account"
+        placeholder="Ex: standard:contact"
         description="Enter the name of the icon to be used on the queried/selected records"
       />
             <property
@@ -30,16 +31,26 @@
         label="Object API Name"
         required="true"
         type="String"
-        placeholder="Ex: Account"
+        placeholder="Ex: Contact"
         description="Enter the object API Name"
+        datasource="apex://ObjPicklist"
       />
             <property
-        name="fieldApiNames"
+        name="fieldPaths"
         type="String"
         required="true"
-        label="Field API Names"
-        placeholder="Ex: Id, Name, AccountNumber"
-        description="Enter the fields to query"
+        label="Field API names and field paths"
+        placeholder="Ex: Id, Name, Phone, Email, Account.Name"
+        description="Enter a comma delimited list of fields/paths to query"
+      />
+      <property
+        name="fieldPathsForSearch"
+        type="String"
+        default="Name"
+        required="true"
+        label="Fields and field paths to base search off of"
+        placeholder="Ex: Name, Phone, Email"
+        description="Enter a comma delimited list of fields/paths to base search off of (default is name)"
       />
       <property
         name="whereClause"
@@ -56,5 +67,68 @@
         description="Optionally enter row actions to be added to the table"
       />
         </targetConfig>
+        <targetConfig targets="lightning__FlowScreen">
+          <property
+        name="title"
+        label="Title"
+        type="String"
+        placeholder="Ex: Contacts lookup and selection"
+        description="Enter the desired title of this instance of the component"
+      />
+    <property
+        name="iconName"
+        label="Icon Name"
+        required="true"
+        type="String"
+        placeholder="Ex: standard:contact"
+        description="Enter the name of the icon to be used on the queried/selected records"
+      />
+          <property
+        name="objApiName"
+        label="Object API Name"
+        required="true"
+        type="String"
+        placeholder="Ex: Contact"
+        description="Enter the object API Name"
+      />
+          <property
+        name="fieldPaths"
+        type="String"
+        required="true"
+        label="Field API Names and field paths"
+        placeholder="Ex: Id, Name, Phone, Email, Account.Name"
+        description="Enter a comma delimited list of fields/paths to query"
+      />
+      <property
+        name="fieldPathsForSearch"
+        type="String"
+        default="Name"
+        required="true"
+        label="Fields and field paths to base search off of"
+        placeholder="Ex: Name, Phone, Email"
+        description="Enter a comma delimited list of fields/paths to base search off of (default is name)"
+      />
+    <property
+        name="whereClause"
+        type="String"
+        label="Where Clause"
+        placeholder="Examples: AccountId = :recordId; Name LIKE '%ABC%'; etc..."
+        description="Optionally enter where clause to filter records. Do not include 'WHERE' in this field."
+      />
+    <property
+        name="actionsStr"
+        type="String"
+        label="Actions"
+        placeholder="Ex: view, edit, delete"
+        description="Optionally enter row actions to be added to the table"
+      />
+    <property
+        name="recordId"
+        type="String"
+        label="Record Id"
+        placeholder="Ex: view, edit, delete"
+        description="Only needed for screen flows. Pass from Lightning Record Page."
+      />
+      </targetConfig>
     </targetConfigs>
 </LightningComponentBundle>
