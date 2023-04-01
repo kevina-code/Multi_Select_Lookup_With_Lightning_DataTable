@@ -12,6 +12,7 @@ Object-agnostic multi select lookup that dynamically drives a lightning data tab
 
 Deploy to Salesforce: https://live.playg.app/play/reusable-multiselect-lookup-that-20230325
 
+Syntax:
 ```html
 <c-multi-select-lookup-with-data-table
     title="Contact lookup/selection"
