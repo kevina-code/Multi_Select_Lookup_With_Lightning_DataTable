@@ -24,7 +24,7 @@ Syntax:
     actions-str="view, edit"
     record-id={recordId}
     placeholder="Lookup record..."
-    onrowstoggled={rowToggleHandler} <!-- name of your method to run when user toggles the checkbox on a row -->
+    onrowstoggled={rowToggleHandler} 
    >
 </c-multi-select-lookup-with-data-table>
 ```
