@@ -7,30 +7,28 @@ import { LightningElement, api } from "lwc";
 
 export default class MultiSelectLookupWithDataTable extends LightningElement {
   @api recordId;
+  @api hasLoaded;
 
   // target configs:
   @api title;
   @api iconName;
   @api objApiName;
-  @api fieldApiNames;
+  @api fieldPaths;
+  @api fieldPathsForSearch;
   @api whereClause;
   @api actionsStr;
+  @api suppressBottomBar;
 
-  selectedRecords = [];
-  selectedRecordsLength;
   recordData = [];
+  linkifiedColumns = [];
+  saveDraftValues = [];
 
   handleSelectedRecords(event) {
-    this.selectedRecords = [...event.detail.selRecords];
+    this.recordData = [...event.detail.selectedRecs];
+    this.linkifiedColumns = [...event.detail.linkifiedColumns];
+  }
 
-    let tempRecList = [];
-    this.selectedRecords.forEach((record) => {
-      let tempRec = Object.assign({}, record);
-      tempRec.RecName = "/" + tempRec.Id;
-      tempRecList.push(tempRec);
-    });
-    this.recordData = tempRecList;
-
-    this.selectedRecordsLength = this.selectedRecords.length;
+  handleCellChanged(event) {
+    this.saveDraftValues = [...event.detail.saveDraftValues];
   }
 }

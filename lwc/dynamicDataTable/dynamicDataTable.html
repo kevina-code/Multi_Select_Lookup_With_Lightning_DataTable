@@ -1,13 +1,39 @@
 <template>
   <div class="slds-p-horizontal_small">
-    <div class="slds-m-top_medium">
-      <lightning-datatable
-        key-field="id"
-        data={recordData}
-        hide-checkbox-column
-        columns={columns}
-      >
-      </lightning-datatable>
+    <div lwc:if={recordData.length} class="slds-m-top_medium">
+      <div lwc:if={hideCheckboxColumn}>
+        <lightning-datatable
+          key-field="Id"
+          data={recordData}
+          columns={columns}
+          errors={errors}
+          suppress-bottom-bar={suppressBottomBar}
+          onrowselection={handleRowSelection}
+          onrowaction={handleRowAction}
+          selected-rows={selectedRowIds}
+          onsave={handleSave}
+          oncellchange={handleCellChange}
+          draft-values={draftValues}
+          hide-checkbox-column
+        >
+        </lightning-datatable>
+      </div>
+      <div lwc:else>
+        <lightning-datatable
+          key-field="Id"
+          data={recordData}
+          columns={columns}
+          errors={errors}
+          suppress-bottom-bar={suppressBottomBar}
+          onrowselection={handleRowSelection}
+          onrowaction={handleRowAction}
+          oncellchange={handleCellChange}
+          selected-rows={selectedRowIds}
+          draft-values={draftValues}
+          onsave={handleSave}
+        >
+        </lightning-datatable>
+      </div>
     </div>
   </div>
 </template>

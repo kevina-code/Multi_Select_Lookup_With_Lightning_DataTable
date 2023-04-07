@@ -6,31 +6,26 @@
     <description>Easy Config Dynamic Data Table</description>
     <targets>
         <target>lightning__RecordPage</target>
+        <target>lightning__FlowScreen</target>
     </targets>
     <targetConfigs>
         <targetConfig targets="lightning__RecordPage">
-            <property
-        name="title"
-        label="Title"
-        type="String"
-        placeholder="Ex: My Data Table"
-        description="Enter the desired title of this instance of the component"
-      />
             <property
         name="objApiName"
         label="Object API Name"
         required="true"
         type="String"
-        placeholder="Ex: Account"
+        placeholder="Ex: Contact"
         description="Enter the object API Name"
+        datasource="apex://ObjPicklist"
       />
             <property
-        name="fieldApiNames"
+        name="fieldPaths"
         type="String"
         required="true"
-        label="Field API Names"
-        placeholder="Ex: Id, Name, AccountNumber"
-        description="Enter the fields to query"
+        label="Field API Names and field paths"
+        placeholder="Ex: Id, Name, Phone, Email, Account.Name"
+        description="Enter a comma delimited list of fields/paths to query"
       />
       <property
         name="whereClause"
@@ -41,12 +36,76 @@
         description="Enter where clause to filter records. Do not include WHERE in the value."
       />
       <property
+        name="hideCheckboxColumn"
+        type="Boolean"
+        label="Hide Checkbox Column"
+        description="Optionally hide the checkbox column in the data table"
+      />
+      <property
         name="actionsStr"
         type="String"
         label="Actions"
         placeholder="Ex: view, edit, delete"
         description="Optionally enter row actions to be added to the table"
       />
+      <property
+        name="suppressBottomBar"
+        type="Boolean"
+        label="Supress Bottom Bar"
+        description="Optionally suppress the bottom bar that reveals the cancel and save button when a change is made to a cell"
+      />
         </targetConfig>
+        <targetConfig targets="lightning__FlowScreen">
+            <property
+        name="objApiName"
+        label="Object API Name"
+        required="true"
+        type="String"
+        placeholder="Ex: Contact"
+        description="Enter the object API Name"
+      />
+      <property
+        name="fieldPaths"
+        type="String"
+        required="true"
+        label="Field API Names and field paths"
+        placeholder="Ex: Id, Name, Phone, Email, Account.Name"
+        description="Enter a comma delimited list of fields/paths to query"
+      />
+      <property
+        name="whereClause"
+        type="String"
+        required="true"
+        label="Where Clause"
+        placeholder="Examples: AccountId = :recordId; NAME LIKE '%ABC%'"
+        description="Enter where clause to filter records. Do not include WHERE in the value."
+      />
+      <property
+        name="hideCheckboxColumn"
+        type="Boolean"
+        label="Hide Checkbox Column"
+        description="Optionally hide the checkbox column in the data table"
+      />
+      <property
+        name="actionsStr"
+        type="String"
+        label="Actions"
+        placeholder="Ex: view, edit, delete"
+        description="Optionally enter row actions to be added to the table"
+      />
+      <property
+        name="suppressBottomBar"
+        type="Boolean"
+        label="Supress Bottom Bar"
+        description="Optionally suppress the bottom bar that reveals the cancel and save button when a change is made to a cell"
+      />
+      <property
+        name="recordId"
+        type="String"
+        label="Record Id"
+        placeholder="Ex: view, edit, delete"
+        description="Only needed for screen flows. Pass from Lightning Record Page."
+      />
+    </targetConfig>
     </targetConfigs>
 </LightningComponentBundle>

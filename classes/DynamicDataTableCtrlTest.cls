@@ -9,7 +9,7 @@
 @isTest
 private class DynamicDataTableCtrlTest {
   @isTest
-  static void test_getRecords() {
+  static void test_getRecordsWrappers() {
     List<Account> accounts = new List<Account>();
     accounts.add(new Account(Name = 'ABC Corp'));
     accounts.add(new Account(Name = 'DEF Corp'));
@@ -17,45 +17,79 @@ private class DynamicDataTableCtrlTest {
     insert accounts;
 
     Test.startTest();
-    List<SObject> accts = DynamicDataTableCtrl.getRecords(
-      'Account',
-      'Id, Name, AccountNumber',
-      'Name != null',
-      accounts[0].Id
+    List<RecordDataModels.RecordWrapper> acctsWrapper = DynamicDataTableCtrl.getRecordWrappers(
+      'Account' /* object api name */,
+      'Id, Name, AccountNumber, Owner.Name' /* field paths */,
+      'Name != null' /* where clause */,
+      accounts[0].Id /* record id */
     );
     Test.stopTest();
 
-    Assert.isFalse(accts.isEmpty());
+    Assert.isFalse(acctsWrapper == null);
+  }
+  @isTest
+  static void test_getRecordsWrappersException() {
+    List<Account> accounts = new List<Account>();
+    accounts.add(new Account(Name = 'ABC Corp'));
+    accounts.add(new Account(Name = 'DEF Corp'));
+    accounts.add(new Account(Name = 'XYZ Corp'));
+    insert accounts;
+
+    Test.startTest();
+    try {
+      List<RecordDataModels.RecordWrapper> acctsWrapper = DynamicDataTableCtrl.getRecordWrappers(
+        'Account' /* object api name */,
+        'Idddd, Nameeee, AccooountNumber, Owner.Name' /* field paths */,
+        'Name != null' /* where clause */,
+        accounts[0].Id /* record id */
+      );
+    } catch (Exception e) {
+      Assert.isTrue(e.getMessage().contains('Script-thrown exception'));
+    }
+    Test.stopTest();
   }
 
   @isTest
   static void test_getFieldInfo() {
-    List<Account> accounts = new List<Account>();
-    accounts.add(new Account(Name = 'ABC Corp'));
-    accounts.add(new Account(Name = 'DEF Corp'));
-    accounts.add(new Account(Name = 'XYZ Corp'));
-    insert accounts;
-
     Test.startTest();
-    List<String> fieldLabels = DynamicDataTableCtrl.getFieldLabels(
+    DynamicDataTableCtrl.TableProperties tableProps1 = DynamicDataTableCtrl.getTableProperties(
       'Account',
-      'Id, Name, AccountNumber'
+      'Id, Name, AccountNumber, Owner.Name'
     );
-    List<String> fieldTypes = DynamicDataTableCtrl.getFieldTypes(
-      'Account',
-      'Id, Name, AccountNumber'
-    );
-    List<String> fieldUpdateables = DynamicDataTableCtrl.getFieldUpdateables(
-      'Account',
-      'Id, Name, AccountNumber'
+    DynamicDataTableCtrl.TableProperties tableProps2 = DynamicDataTableCtrl.getTableProperties(
+      'Contact',
+      'Id, Name, Phone, Email, Account.Name'
     );
     Test.stopTest();
 
-    Assert.areEqual(fieldLabels[1], 'Account Name');
-    Assert.areEqual(fieldLabels[2], 'Account Number');
-    Assert.areEqual(fieldTypes[1], 'STRING');
-    Assert.areEqual(fieldTypes[2], 'STRING');
-    Assert.areEqual(fieldUpdateables[1], 'true');
-    Assert.areEqual(fieldUpdateables[2], 'true');
+    Assert.areEqual(tableProps1.columnHeaders[1], 'Account Name');
+    Assert.areEqual(tableProps1.columnHeaders[2], 'Account Number');
+    Assert.areEqual(tableProps1.columnHeaders[3], 'Owner Name');
+    Assert.areEqual(tableProps1.fieldTypes[1], 'STRING');
+    Assert.areEqual(tableProps1.fieldTypes[2], 'STRING');
+    Assert.isTrue(tableProps1.fieldUpdateables[1]);
+    Assert.isTrue(tableProps1.fieldUpdateables[2]);
+
+    Assert.areEqual(tableProps2.columnHeaders[1], 'Full Name');
+    Assert.areEqual(tableProps2.columnHeaders[2], 'Business Phone');
+    Assert.areEqual(tableProps2.columnHeaders[4], 'Account Name');
+    Assert.areEqual(tableProps2.fieldTypes[1], 'STRING');
+    Assert.areEqual(tableProps2.fieldTypes[2], 'PHONE');
+    Assert.isFalse(tableProps2.fieldUpdateables[1]);
+    Assert.isTrue(tableProps2.fieldUpdateables[2]);
+  }
+
+  @isTest
+  static void test_getFieldInfoException() {
+    try {
+      Test.startTest();
+      DynamicDataTableCtrl.TableProperties tableProps1 = DynamicDataTableCtrl.getTableProperties(
+        'Account',
+        'Id, Nameeeeee, AccountNumber, Owner.Name'
+      );
+      Test.stopTest();
+    } catch (Exception e) {
+      Assert.isTrue(e.getMessage().contains('Script-thrown exception'));
+    }
   }
 }
