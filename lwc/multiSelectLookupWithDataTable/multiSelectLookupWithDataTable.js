@@ -19,6 +19,7 @@ export default class MultiSelectLookupWithDataTable extends LightningElement {
   @api actionsStr;
   @api suppressBottomBar;
 
+<<<<<<< HEAD
   recordData = [];
   linkifiedColumns = [];
   saveDraftValues = [];
@@ -30,5 +31,18 @@ export default class MultiSelectLookupWithDataTable extends LightningElement {
 
   handleCellChanged(event) {
     this.saveDraftValues = [...event.detail.saveDraftValues];
+=======
+  searchResultRecordsLength;
+  recordData = [];
+  linkifiedColumns = [];
+
+  handleSelectedRecords(event) {
+    this.hasLoaded = false;
+    const selectedRecords = [...event.detail.selectedRecs];
+    this.recordData = selectedRecords;
+    this.linkifiedColumns = [...event.detail.linkifiedColumns];
+    this.searchResultRecordsLength = selectedRecords.length;
+    this.hasLoaded = true;
+>>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
   }
 }

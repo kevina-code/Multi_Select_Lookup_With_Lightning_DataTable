@@ -24,11 +24,15 @@ export default class MultiSelectLookup extends LightningElement {
 
   searchResultWrappers = [];
   searchResultRecords = [];
+  selectedRecordWrappers = [];
   selectedRecords = [];
   linkifiedColumns = [];
+<<<<<<< HEAD
   colHeaderToFieldApiName = {};
   colHeaderToFieldType = {};
   selectedRows = [];
+=======
+>>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
 
   doneTypingInterval = 300;
   typingTimer;
@@ -41,7 +45,13 @@ export default class MultiSelectLookup extends LightningElement {
 
   // retrieve records based on user search
   searchField(searchKey) {
+<<<<<<< HEAD
     const selectedRecordIds = this.selectedRecords.map((record) => record.Id);
+=======
+    let selectedRecordIds = this.selectedRecordWrappers.map(
+      (obj) => obj.record.Id
+    );
+>>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
     retrieveSearchData({
       objApiName: this.objApiName,
       fieldPaths: this.fieldPaths,
@@ -65,6 +75,7 @@ export default class MultiSelectLookup extends LightningElement {
 
         const searchResultRecords = this.searchResultRecords;
         const linkifiedColumns = this.linkifiedColumns;
+<<<<<<< HEAD
         const colHeaderToFieldApiName = this.colHeaderToFieldApiName;
         const colHeaderToFieldType = this.colHeaderToFieldType;
         const searchedEvent = new CustomEvent("searched", {
@@ -74,6 +85,10 @@ export default class MultiSelectLookup extends LightningElement {
             colHeaderToFieldApiName,
             colHeaderToFieldType
           }
+=======
+        const searchedEvent = new CustomEvent("searched", {
+          detail: { searchResultRecords, linkifiedColumns }
+>>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
         });
         this.dispatchEvent(searchedEvent);
 
@@ -106,11 +121,19 @@ export default class MultiSelectLookup extends LightningElement {
   }
 
   // assimilate records with custom properties
+<<<<<<< HEAD
   assimilateRecordData(items) {
     const tempRecList = [];
     // add custom properties here since we can't do that to SObject records in apex
     items.forEach((recordWrapper) => {
       const tempRec = Object.assign({}, recordWrapper.record);
+=======
+  // assimilate records with custom properties
+  assimilateRecordData(items) {
+    let tempRecList = [];
+    items.forEach((recordWrapper) => {
+      let tempRec = Object.assign({}, recordWrapper.record);
+>>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
       for (const prop in recordWrapper.fieldPropertyMap) {
         if (
           Object.prototype.hasOwnProperty.call(
@@ -120,10 +143,13 @@ export default class MultiSelectLookup extends LightningElement {
         ) {
           const fieldProperty = recordWrapper.fieldPropertyMap[prop];
           tempRec[fieldProperty.columnHeader] = fieldProperty.fieldValue;
+<<<<<<< HEAD
           this.colHeaderToFieldApiName[fieldProperty.columnHeader] =
             fieldProperty.fieldApiName;
           this.colHeaderToFieldType[fieldProperty.columnHeader] =
             fieldProperty.fieldType;
+=======
+>>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
           if (fieldProperty.linkId) {
             this.linkifiedColumns.push(fieldProperty.columnHeader);
             tempRec[fieldProperty.columnHeader] = "/" + fieldProperty.linkId;
@@ -190,6 +216,10 @@ export default class MultiSelectLookup extends LightningElement {
       this.template
         .querySelector(".lookupInputContainer")
         .classList.remove("slds-is-open");
+<<<<<<< HEAD
+=======
+      let selectedRecs = this.selectedRecordWrappers;
+>>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
 
       this.template.querySelectorAll("lightning-input").forEach((each) => {
         each.value = "";
@@ -199,8 +229,13 @@ export default class MultiSelectLookup extends LightningElement {
         (data) => data.Id === recId
       );
       this.selectedRecords.push(applicableRecord);
+<<<<<<< HEAD
       const selectedRecs = this.selectedRecords;
 
+=======
+
+      selectedRecs = this.selectedRecords;
+>>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
       const linkifiedColumns = this.linkifiedColumns;
       const selectedEvent = new CustomEvent("selected", {
         detail: { selectedRecs, linkifiedColumns }
@@ -218,12 +253,21 @@ export default class MultiSelectLookup extends LightningElement {
     try {
       if (this.context === "multi select lookup") {
         // filter out the item that was removed by user
+<<<<<<< HEAD
         const filteredRecords = this.selectedRecords.filter(function (record) {
           return record.Id !== event.detail.name;
         });
 
         this.selectedRecords = [...filteredRecords];
         const selectedRecs = this.selectedRecords;
+=======
+        const filteredRecords = this.selectedRecords.filter(function (obj) {
+          return obj.Id !== event.detail.name;
+        });
+
+        this.selectedRecords = [...filteredRecords];
+        let selectedRecs = this.selectedRecords;
+>>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
         const selectedEvent = new CustomEvent("selected", {
           detail: { selectedRecs }
         });

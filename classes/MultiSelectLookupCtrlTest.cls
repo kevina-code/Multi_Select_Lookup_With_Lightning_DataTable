@@ -3,8 +3,6 @@
  * Description: provides code coverage for the following classes: MultiSelectLookupCtrl
  * Created    : 03.22.2023
  *
- * Revisions:
- * Date : Name : Notes
  */
 @isTest
 private class MultiSelectLookupCtrlTest {
@@ -24,7 +22,12 @@ private class MultiSelectLookupCtrlTest {
       'ABC' /* value */,
       new List<Id>{ accounts[1].Id } /* selectedRecordIds */,
       'Name != null' /* whereClause */,
+<<<<<<< HEAD
       accounts[1].Id /* recordId */
+=======
+      accounts[1].Id /* recordId */,
+      10 /* recordLimit */
+>>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
     );
     Test.stopTest();
 
@@ -49,7 +52,12 @@ private class MultiSelectLookupCtrlTest {
         'ABC' /* value */,
         new List<Id>{ accounts[1].Id } /* selectedRecordIds */,
         'Name != null' /* whereClause */,
+<<<<<<< HEAD
         accounts[1].Id /* recordId */
+=======
+        accounts[1].Id /* recordId */,
+        10 /* recordLimit */
+>>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
       );
     } catch (Exception e) {
       Assert.isTrue(e.getMessage().contains('Script-thrown exception'));

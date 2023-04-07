@@ -18,14 +18,22 @@ private class DynamicDataTableCtrlTest {
 
     Test.startTest();
     List<RecordDataModels.RecordWrapper> acctsWrapper = DynamicDataTableCtrl.getRecordWrappers(
+<<<<<<< HEAD
       'Account' /* object api name */,
       'Id, Name, AccountNumber, Owner.Name' /* field paths */,
       'Name != null' /* where clause */,
       accounts[0].Id /* record id */
+=======
+      'Account',
+      'Id, Name, AccountNumber, Owner.Name',
+      'Name != null',
+      accounts[0].Id
+>>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
     );
     Test.stopTest();
 
     Assert.isFalse(acctsWrapper == null);
+<<<<<<< HEAD
   }
   @isTest
   static void test_getRecordsWrappersException() {
@@ -47,11 +55,39 @@ private class DynamicDataTableCtrlTest {
       Assert.isTrue(e.getMessage().contains('Script-thrown exception'));
     }
     Test.stopTest();
+=======
+>>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
+  }
+  @isTest
+<<<<<<< HEAD
+  static void test_getFieldInfo() {
+    Test.startTest();
+=======
+  static void test_getRecordsWrappersException() {
+    List<Account> accounts = new List<Account>();
+    accounts.add(new Account(Name = 'ABC Corp'));
+    accounts.add(new Account(Name = 'DEF Corp'));
+    accounts.add(new Account(Name = 'XYZ Corp'));
+    insert accounts;
+
+    Test.startTest();
+    try {
+      List<RecordDataModels.RecordWrapper> acctsWrapper = DynamicDataTableCtrl.getRecordWrappers(
+        'Account',
+        'Id, Nameeeee, AccountNumber, Owner.Name',
+        'Name != null',
+        accounts[0].Id
+      );
+    } catch (Exception e) {
+      Assert.isTrue(e.getMessage().contains('Script-thrown exception'));
+    }
+    Test.stopTest();
   }
 
   @isTest
   static void test_getFieldInfo() {
     Test.startTest();
+>>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
     DynamicDataTableCtrl.TableProperties tableProps1 = DynamicDataTableCtrl.getTableProperties(
       'Account',
       'Id, Name, AccountNumber, Owner.Name'

@@ -41,16 +41,26 @@ public class MultiSelectLookupCtrl {
           value,
           selectedRecordIds,
           whereClause,
+<<<<<<< HEAD
           recordId
         );
 
         System.debug('queryStr: ' + queryStr);
+=======
+          recordId,
+          recordLimit
+        );
+>>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
         for (SObject record : Database.Query(queryStr)) {
           recordWrappers.add(
             new RecordDataModels.RecordWrapper(
               record,
               fieldPaths,
+<<<<<<< HEAD
               DataTableUtils.getColumnPropertiesList(objApiName, fieldPaths)
+=======
+              FieldUtils.getColumnHeaders(objApiName, fieldPaths)
+>>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
             )
           );
         }
@@ -79,7 +89,12 @@ public class MultiSelectLookupCtrl {
     String value,
     List<String> selectedRecordIds,
     String whereClause,
+<<<<<<< HEAD
     String recordId
+=======
+    String recordId,
+    Integer recordLimit
+>>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
   ) {
     String queryStr = 'SELECT Id, Name';
     if (fieldPaths != null) {
@@ -110,6 +125,7 @@ public class MultiSelectLookupCtrl {
     }
     queryStr += ')';
 
+<<<<<<< HEAD
     queryStr += ' AND ID NOT IN :selectedRecordIds';
 
     if (whereClause != null && whereClause != '') {
@@ -122,6 +138,15 @@ public class MultiSelectLookupCtrl {
     ) {
       queryStr += ' LIMIT 10';
     }
+=======
+    // if whereClause specified in target config
+    if (whereClause != null && whereClause != '') {
+      queryStr += ' AND ' + whereClause;
+    }
+    queryStr +=
+      ' AND ID NOT IN: selectedRecordIds ORDER BY CreatedDate DESC LIMIT ' +
+      recordLimit;
+>>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
     return queryStr;
   }
 }

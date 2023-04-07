@@ -6,8 +6,12 @@
 import { LightningElement, api, wire } from "lwc";
 import { NavigationMixin } from "lightning/navigation";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
+<<<<<<< HEAD
 import { updateRecord, deleteRecord } from "lightning/uiRecordApi";
 import { refreshApex } from "@salesforce/apex";
+=======
+import { deleteRecord } from "lightning/uiRecordApi";
+>>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
 import getRecordWrappers from "@salesforce/apex/DynamicDataTableCtrl.getRecordWrappers";
 import getTableProperties from "@salesforce/apex/DynamicDataTableCtrl.getTableProperties";
 
@@ -22,19 +26,31 @@ export default class DynamicDataTable extends NavigationMixin(
   @api objApiName;
   @api fieldPaths;
   @api whereClause;
+<<<<<<< HEAD
+=======
+  @api recordLimit;
+>>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
   @api hideCheckboxColumn;
   @api actionsStr;
   @api suppressBottomBar;
 
   @api recordData = [];
+<<<<<<< HEAD
   @api linkifiedColumns = [];
   @api selectedRowIds = [];
   @api colHeaderToFieldApiName = {};
   @api colHeaderToFieldType = {};
   columnHeaders = [];
 
+=======
+  columnHeaders = [];
+>>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
   fieldTypes = [];
   fieldUpdateables = [];
+  @api linkifiedColumns = [];
+
+  selectedRowIds = [];
+  preselectedContactRow = ["0035w000036mj7oAAA"];
 
   wiredRecordWrappersResult;
   saveDraftValues = [];
@@ -79,7 +95,10 @@ export default class DynamicDataTable extends NavigationMixin(
     recordId: "$recordId"
   })
   wiredRecordWrappers(result) {
+<<<<<<< HEAD
     this.wiredRecordWrappersResult = result;
+=======
+>>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
     console.log("wiredRecords error", result.error);
     console.log("wiredRecords result.data", result.data);
     if (result.data) {
@@ -97,6 +116,7 @@ export default class DynamicDataTable extends NavigationMixin(
     }
   }
 
+<<<<<<< HEAD
   /**
    * get field properties to apply to lightning data table
    */
@@ -229,6 +249,118 @@ export default class DynamicDataTable extends NavigationMixin(
   handleRowSelection(event) {
     const selectedRows = event.detail.selectedRows;
     //this.selectedRowIds = selectedRows.map((record) => record.id);
+=======
+  // assimilate records with custom properties
+  assimilateRecordData(items) {
+    let tempRecList = [];
+    items.forEach((recordWrapper) => {
+      let tempRec = Object.assign({}, recordWrapper.record);
+      for (const prop in recordWrapper.fieldPropertyMap) {
+        if (
+          Object.prototype.hasOwnProperty.call(
+            recordWrapper.fieldPropertyMap,
+            prop
+          )
+        ) {
+          const fieldProperty = recordWrapper.fieldPropertyMap[prop];
+          tempRec[fieldProperty.columnHeader] = fieldProperty.fieldValue;
+          if (fieldProperty.linkId) {
+            this.linkifiedColumns.push(fieldProperty.columnHeader);
+            tempRec[fieldProperty.columnHeader] = "/" + fieldProperty.linkId;
+            tempRec[fieldProperty.linkLabel] = fieldProperty.fieldValue;
+          }
+        }
+      }
+      tempRec.objName = recordWrapper.objName;
+      tempRec.RecName = "/" + tempRec.Id;
+      tempRecList.push(tempRec);
+    });
+    return tempRecList;
+  }
+
+  /**
+   * get field properties to apply to lightning data table
+   */
+  @wire(getTableProperties, {
+    objApiName: "$objApiName",
+    fieldPaths: "$fieldPaths"
+  })
+  wiredFieldProperties(result) {
+    console.log("wiredFieldProperties error", result.error);
+    console.log("wiredFieldProperties result.data", result.data);
+    if (result.data) {
+      this.columnHeaders = result.data.columnHeaders;
+      this.fieldTypes = result.data.fieldTypes;
+      this.fieldUpdateables = result.data.fieldUpdateables;
+    } else if (result.error) {
+      console.log("wiredFieldProperties error", result.error.body.message);
+      this.dispatchEvent(
+        new ShowToastEvent({
+          title: "Error retrieving field properties",
+          message: result.error.body.message,
+          variant: "error"
+        })
+      );
+    }
+  }
+
+  get columns() {
+    try {
+      const fieldApiNameArray = this.fieldPaths.replace(/\s/g, "").split(",");
+
+      let columnList = [];
+      for (let i = 0; i < fieldApiNameArray.length; i++) {
+        const fieldApiName = fieldApiNameArray[i];
+        if (fieldApiName.toUpperCase() !== "ID") {
+          let column = {};
+          column.label = this.columnHeaders[i];
+          column.type = this.typeMap.get(this.fieldTypes[i]);
+          column.editable = this.fieldUpdateables[i];
+          column.sortable = true;
+          if (fieldApiName.toUpperCase() === "NAME") {
+            column.fieldName = "RecName";
+            column.type = "url";
+            column.typeAttributes = {
+              label: { fieldName: "Name" },
+              target: "_blank"
+            };
+          } else {
+            column.fieldName = this.columnHeaders[i];
+            if (this.linkifiedColumns.includes(this.columnHeaders[i])) {
+              column.label = this.columnHeaders[i];
+              column.fieldName = this.columnHeaders[i];
+              column.type = "url";
+              column.typeAttributes = {
+                label: { fieldName: this.columnHeaders[i] + "^_^" + i },
+                target: "_blank"
+              };
+            }
+          }
+          columnList.push(column);
+        }
+      }
+
+      if (this.actions.length) {
+        columnList.push({
+          type: "action",
+          typeAttributes: {
+            rowActions: this.actions,
+            menuAlignment: "right"
+          }
+        });
+      }
+      return columnList;
+    } catch (error) {
+      console.log("columns error: ", error);
+    }
+  }
+
+  // handle when user selects row from data table
+  handleRowSelection(event) {
+    const selectedRows = event.detail.selectedRows;
+    console.log("selectedRows: ", JSON.stringify(selectedRows));
+    this.selectedRowIds = selectedRows.map((record) => record.id);
+>>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
     const rowsToggledEvent = new CustomEvent("rowstoggled", {
       detail: { selectedRows }
     });
@@ -285,6 +417,7 @@ export default class DynamicDataTable extends NavigationMixin(
         break;
       default:
     }
+<<<<<<< HEAD
   }
 
   // handle when user clicks the save button
@@ -383,5 +516,7 @@ export default class DynamicDataTable extends NavigationMixin(
       detail: { saveDraftValues }
     });
     this.dispatchEvent(cellChangedEvent);
+=======
+>>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
   }
 }

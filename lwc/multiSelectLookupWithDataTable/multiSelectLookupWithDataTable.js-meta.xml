@@ -128,12 +128,15 @@
         placeholder="Ex: view, edit, delete"
         description="Optionally enter row actions to be added to the table"
       />
+<<<<<<< HEAD
       <property
         name="suppressBottomBar"
         type="Boolean"
         label="Supress Bottom Bar"
         description="Optionally suppress the bottom bar that reveals the cancel and save button when a change is made to a cell"
       />
+=======
+>>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
     <property
         name="recordId"
         type="String"

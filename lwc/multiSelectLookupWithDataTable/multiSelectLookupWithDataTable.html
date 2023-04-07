@@ -12,6 +12,7 @@
         icon-name={iconName}
         placeholder="Lookup record(s)..."
         onselected={handleSelectedRecords}
+<<<<<<< HEAD
         oncellchanged={handleCellChange}
       >
       </c-multi-select-lookup>
@@ -20,13 +21,26 @@
         <c-dynamic-data-table
           obj-api-name={objApiName}
           field-paths={fieldPaths}
+=======
+      >
+      </c-multi-select-lookup>
+      <!-- dynamic data table -->
+      <template if:true={searchResultRecordsLength}>
+        <c-dynamic-data-table
+          obj-api-name={objApiName}
+          field-paths={fieldPaths}
+          hide-checkbox-column
+>>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
           actions-str={actionsStr}
           suppress-bottom-bar={suppressBottomBar}
           record-limit="50"
           record-data={recordData}
           has-loaded={hasLoaded}
           linkified-columns={linkifiedColumns}
+<<<<<<< HEAD
           hide-checkbox-column
+=======
+>>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
         >
         </c-dynamic-data-table>
       </template>

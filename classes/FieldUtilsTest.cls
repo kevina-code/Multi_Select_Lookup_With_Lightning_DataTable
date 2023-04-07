@@ -2,13 +2,17 @@
  * Author      : Kevin Antonioli (braveitnow@pm.me)
  * Description : Provides test code coverage for FieldUtils.cls
  * Created     : 03.29.2023
+<<<<<<< HEAD
  *
  * Revisions:
  * Date : Name : Notes
+=======
+>>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
  */
 @isTest
 public class FieldUtilsTest {
   @isTest
+<<<<<<< HEAD
   static void test_getDynamicDescribe() {
     List<Account> accounts = createTestAccounts();
     String accountNumberLabel2 = FieldUtils.getDynamicDescribe(accounts[0])
@@ -44,6 +48,9 @@ public class FieldUtilsTest {
 
   @isTest
   static void test_parseValueFromFieldPath() {
+=======
+  static void test_parseFieldPathForSObject() {
+>>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
     List<Account> accounts = createTestAccounts();
 
     List<Contact> contactList = new List<Contact>();
@@ -58,6 +65,7 @@ public class FieldUtilsTest {
     ];
 
     Test.startTest();
+<<<<<<< HEAD
     String accountName = (String) FieldUtils.parseValueFromFieldPath(
       queriedContact,
       'Account.Name'
@@ -70,11 +78,24 @@ public class FieldUtilsTest {
       queriedContact,
       'BLAH'
     );
+=======
+    String accountName = (String) FieldUtils.parseFieldPathForSObject(
+      queriedContact,
+      'Account.Name'
+    );
+    String contactName = (String) FieldUtils.parseFieldPathForSObject(
+      queriedContact,
+      'Name'
+    );
+>>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
     Test.stopTest();
 
     Assert.areEqual(accountName, queriedContact.Account.Name);
     Assert.areEqual(contactName, queriedContact.Name);
+<<<<<<< HEAD
     Assert.isNull(blah);
+=======
+>>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
   }
 
   @isTest
@@ -108,6 +129,7 @@ public class FieldUtilsTest {
   }
 
   @isTest
+<<<<<<< HEAD
   static void test_fieldSetMethods() {
     try {
       // cannot create field set in test class; this is the best we can do:
@@ -217,6 +239,35 @@ public class FieldUtilsTest {
     Assert.isTrue(
       FieldUtils.getAllAccessibleFieldsAsStr('Account').contains('CreatedById')
     );
+=======
+  static void test_parsePropertiesFromFieldPath() {
+    String parsedPath = FieldUtils.parsePropertiesFromFieldPath(
+        'Contact',
+        'Account.Owner.UserRole.Name'
+      )
+      .parsedLabelNames;
+    Assert.areEqual(parsedPath, 'Account Owner Role Name');
+
+    List<String> parsedPath2 = FieldUtils.parsePropertiesFromFieldPath(
+        'Contact',
+        'Account.Owner.UserRole.Name'
+      )
+      .parsedObjApiNames;
+    Assert.areEqual(parsedPath2[0], 'Account');
+    Assert.areEqual(parsedPath2[1], 'User');
+    Assert.areEqual(parsedPath2[2], 'UserRole');
+  }
+
+  @isTest
+  static void test_getColumnHeaders() {
+    List<String> columnHeaders = FieldUtils.getColumnHeaders(
+      'Contact',
+      'Account.Name, Account.Owner.Name, Account.Owner.UserRole.Name'
+    );
+    Assert.areEqual(columnHeaders[0], 'Account Name');
+    Assert.areEqual(columnHeaders[1], 'Account Owner Name');
+    Assert.areEqual(columnHeaders[2], 'Account Owner Role Name');
+>>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
   }
 
   /** HELPER METHODS */

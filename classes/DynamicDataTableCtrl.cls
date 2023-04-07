@@ -36,7 +36,11 @@ public class DynamicDataTableCtrl {
           new RecordDataModels.RecordWrapper(
             record,
             fieldPaths,
+<<<<<<< HEAD
             DataTableUtils.getColumnPropertiesList(objApiName, fieldPaths)
+=======
+            FieldUtils.getColumnHeaders(objApiName, fieldPaths)
+>>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
           )
         );
       }
@@ -78,7 +82,11 @@ public class DynamicDataTableCtrl {
       TableProperties tableProperties = new TableProperties();
       for (String fieldPath : fieldPaths.split(',')) {
         fieldPath = fieldPath.trim();
+<<<<<<< HEAD
         DataTableUtils.ColumnProperties columnProperties = DataTableUtils.getColumnProperties(
+=======
+        FieldUtils.ColumnProperties columnProperties = FieldUtils.getColumnProperties(
+>>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
           objApiName,
           fieldPath
         );
