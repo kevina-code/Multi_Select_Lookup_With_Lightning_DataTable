@@ -22,9 +22,13 @@ public class DynamicDataTableCtrl {
     Id recordId
   ) {
     try {
+      List<String> fieldPathsToQuery = getFieldPathsToQuery(
+        objApiName,
+        fieldPaths
+      );
       String queryStr =
         'SELECT ' +
-        fieldPaths +
+        String.join(fieldPathsToQuery, ',') +
         ' FROM ' +
         objApiName +
         ' WHERE ' +
@@ -36,11 +40,7 @@ public class DynamicDataTableCtrl {
           new RecordDataModels.RecordWrapper(
             record,
             fieldPaths,
-<<<<<<< HEAD
             DataTableUtils.getColumnPropertiesList(objApiName, fieldPaths)
-=======
-            FieldUtils.getColumnHeaders(objApiName, fieldPaths)
->>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
           )
         );
       }
@@ -82,15 +82,13 @@ public class DynamicDataTableCtrl {
       TableProperties tableProperties = new TableProperties();
       for (String fieldPath : fieldPaths.split(',')) {
         fieldPath = fieldPath.trim();
-<<<<<<< HEAD
         DataTableUtils.ColumnProperties columnProperties = DataTableUtils.getColumnProperties(
-=======
-        FieldUtils.ColumnProperties columnProperties = FieldUtils.getColumnProperties(
->>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
           objApiName,
           fieldPath
         );
-        tableProperties.columnHeaders.add(columnProperties.columnHeaderLabel);
+        tableProperties.columnHeaders.add(
+          columnProperties.columnHeaderLabel.trim()
+        );
         tableProperties.fieldTypes.add(columnProperties.fieldType);
         tableProperties.fieldUpdateables.add(columnProperties.isUpdateable);
       }
@@ -103,5 +101,52 @@ public class DynamicDataTableCtrl {
         e.getStackTraceString()
       );
     }
+  }
+
+  /**
+   * @description: get field paths to query for data table\
+   * @param   objApiName            object api name to query
+   * @param   fieldPaths            comma delimited string of field paths specified in config
+   * @return  fieldPathsToQuery     a list of field paths to query
+   */
+  private static List<String> getFieldPathsToQuery(
+    String objApiName,
+    String fieldPaths
+  ) {
+    List<String> fieldPathsToQuery = new List<String>();
+    List<String> potentialRelFields = new List<String>(); // potential relationship fields (ex: AccountId)
+    for (String fieldPath : fieldPaths.split(',')) {
+      fieldPath = fieldPath.trim();
+      if (!fieldPath.contains('.')) {
+        potentialRelFields.add(fieldPath);
+      }
+      fieldPathsToQuery.add(fieldPath);
+    }
+    if (!potentialRelFields.isEmpty()) {
+      for (String field : potentialRelFields) {
+        Map<String, Schema.SObjectField> fieldMap = FieldUtils.getDynamicDescribe(
+            objApiName
+          )
+          .fields.GetMap();
+        if (
+          String.valueOf(fieldMap.get(field).getDescribe().getType()) ==
+          'REFERENCE'
+        ) {
+          String relObjApiName = fieldMap
+              .get(field)
+              .getDescribe()
+              .getReferenceTo()[0]
+            .getDescribe()
+            .getName();
+
+          relObjApiName = relObjApiName.replace('__c', '__r');
+          String additionalPath = relObjApiName + '.Name';
+          if (!fieldPathsToQuery.contains(additionalPath)) {
+            fieldPathsToQuery.add(additionalPath);
+          }
+        }
+      }
+    }
+    return fieldPathsToQuery;
   }
 }

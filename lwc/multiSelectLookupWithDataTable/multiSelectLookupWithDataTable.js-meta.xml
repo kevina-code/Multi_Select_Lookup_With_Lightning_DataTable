@@ -4,13 +4,20 @@
     <isExposed>true</isExposed>
     <masterLabel>Multi Select Lookup with Data Table</masterLabel>
     <description
-  >Multi select lookup box for user to enter name of record and select multiple records while driving data table</description>
+  >Multi select lookup box that drives lightning datatable</description>
     <targets>
-        <target>lightning__RecordPage</target>
-        <target>lightning__FlowScreen</target>
+      <target>lightning__RecordPage</target>
+      <target>lightning__AppPage</target>
+      <target>lightning__HomePage</target>
+      <target>lightning__FlowScreen</target>
+      <target>lightningCommunity__Default</target>
+      <target>lightningCommunity__Page</target>
+      <target>lightningCommunity__Page_Layout</target>
     </targets>
     <targetConfigs>
-        <targetConfig targets="lightning__RecordPage">
+        <targetConfig
+      targets="lightning__RecordPage, lightning__AppPage, lightning__HomePage, lightningCommunity__Default"
+    >
             <property
         name="title"
         label="Title"
@@ -22,6 +29,7 @@
         name="iconName"
         label="Icon Name"
         required="true"
+        default="standard:contact"
         type="String"
         placeholder="Ex: standard:contact"
         description="Enter the name of the icon to be used on the queried/selected records"
@@ -30,6 +38,7 @@
         name="objApiName"
         label="Object API Name"
         required="true"
+        default="Contact"
         type="String"
         placeholder="Ex: Contact"
         description="Enter the object API Name"
@@ -39,6 +48,7 @@
         name="fieldPaths"
         type="String"
         required="true"
+        default="Id, Name"
         label="Field API names and field paths"
         placeholder="Ex: Id, Name, Phone, Email, Account.Name"
         description="Enter a comma delimited list of fields/paths to query"
@@ -128,15 +138,12 @@
         placeholder="Ex: view, edit, delete"
         description="Optionally enter row actions to be added to the table"
       />
-<<<<<<< HEAD
       <property
         name="suppressBottomBar"
         type="Boolean"
         label="Supress Bottom Bar"
         description="Optionally suppress the bottom bar that reveals the cancel and save button when a change is made to a cell"
       />
-=======
->>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
     <property
         name="recordId"
         type="String"

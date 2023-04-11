@@ -3,6 +3,8 @@
  * Description: provides code coverage for the following classes: MultiSelectLookupCtrl
  * Created    : 03.22.2023
  *
+ * Revisions:
+ * Date : Name : Notes
  */
 @isTest
 private class MultiSelectLookupCtrlTest {
@@ -17,22 +19,21 @@ private class MultiSelectLookupCtrlTest {
     Test.startTest();
     List<RecordDataModels.RecordWrapper> wrappers = MultiSelectLookupCtrl.retrieveSearchData(
       'Account' /* objApiName */,
-      'Id, Name, AccountNumber' /* fieldPaths */,
+      'Id, Name, AccountNumber, Owner.UserRole.Name' /* fieldPaths */,
       'Name' /* fieldPathsForSearch */,
       'ABC' /* value */,
       new List<Id>{ accounts[1].Id } /* selectedRecordIds */,
       'Name != null' /* whereClause */,
-<<<<<<< HEAD
       accounts[1].Id /* recordId */
-=======
-      accounts[1].Id /* recordId */,
-      10 /* recordLimit */
->>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
     );
     Test.stopTest();
 
-    Assert.isFalse(wrappers.isEmpty());
-    Assert.areEqual(wrappers[0].record.get('Name'), 'ABC Corp');
+    Assert.isFalse(wrappers.isEmpty(), 'Expected wrappers not to be empty');
+    Assert.areEqual(
+      wrappers[0].record.get('Name'),
+      'ABC Corp',
+      'Expected the first wrapper\'s record name to be "ABC Corp"'
+    );
   }
 
   @isTest
@@ -52,15 +53,13 @@ private class MultiSelectLookupCtrlTest {
         'ABC' /* value */,
         new List<Id>{ accounts[1].Id } /* selectedRecordIds */,
         'Name != null' /* whereClause */,
-<<<<<<< HEAD
         accounts[1].Id /* recordId */
-=======
-        accounts[1].Id /* recordId */,
-        10 /* recordLimit */
->>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
       );
     } catch (Exception e) {
-      Assert.isTrue(e.getMessage().contains('Script-thrown exception'));
+      Assert.isTrue(
+        e.getMessage().contains('Script-thrown exception'),
+        'Expected exception message to contain "Script-thrown exception"'
+      );
     }
     Test.stopTest();
   }

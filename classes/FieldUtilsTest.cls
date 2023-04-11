@@ -2,17 +2,13 @@
  * Author      : Kevin Antonioli (braveitnow@pm.me)
  * Description : Provides test code coverage for FieldUtils.cls
  * Created     : 03.29.2023
-<<<<<<< HEAD
  *
  * Revisions:
  * Date : Name : Notes
-=======
->>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
  */
 @isTest
 public class FieldUtilsTest {
   @isTest
-<<<<<<< HEAD
   static void test_getDynamicDescribe() {
     List<Account> accounts = createTestAccounts();
     String accountNumberLabel2 = FieldUtils.getDynamicDescribe(accounts[0])
@@ -20,14 +16,22 @@ public class FieldUtilsTest {
       .get('AccountNumber')
       .getDescribe()
       .getLabel();
-    Assert.areEqual(accountNumberLabel2, 'Account Number');
+    Assert.areEqual(
+      accountNumberLabel2,
+      'Account Number',
+      'Expected accountNumberLabel2 to be "Account Number"'
+    );
 
     String accountNumberLabel = FieldUtils.getDynamicDescribe('Account')
       .fields.getMap()
       .get('AccountNumber')
       .getDescribe()
       .getLabel();
-    Assert.areEqual(accountNumberLabel, 'Account Number');
+    Assert.areEqual(
+      accountNumberLabel,
+      'Account Number',
+      'Expected accountNumberLabel to be "Account Number"'
+    );
   }
 
   @isTest
@@ -37,20 +41,25 @@ public class FieldUtilsTest {
       .get('AccountNumber')
       .getDescribe()
       .getLabel();
-    Assert.areEqual(accountNumberLabel, 'Account Number');
+    Assert.areEqual(
+      accountNumberLabel,
+      'Account Number',
+      'Expected accountNumberLabel to be "Account Number"'
+    );
 
     String accountNumberLabel2 = FieldUtils.getFieldMap('Account')
       .get('AccountNumber')
       .getDescribe()
       .getLabel();
-    Assert.areEqual(accountNumberLabel2, 'Account Number');
+    Assert.areEqual(
+      accountNumberLabel2,
+      'Account Number',
+      'Expected accountNumberLabel2 to be "Account Number"'
+    );
   }
 
   @isTest
   static void test_parseValueFromFieldPath() {
-=======
-  static void test_parseFieldPathForSObject() {
->>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
     List<Account> accounts = createTestAccounts();
 
     List<Contact> contactList = new List<Contact>();
@@ -65,7 +74,6 @@ public class FieldUtilsTest {
     ];
 
     Test.startTest();
-<<<<<<< HEAD
     String accountName = (String) FieldUtils.parseValueFromFieldPath(
       queriedContact,
       'Account.Name'
@@ -78,24 +86,19 @@ public class FieldUtilsTest {
       queriedContact,
       'BLAH'
     );
-=======
-    String accountName = (String) FieldUtils.parseFieldPathForSObject(
-      queriedContact,
-      'Account.Name'
-    );
-    String contactName = (String) FieldUtils.parseFieldPathForSObject(
-      queriedContact,
-      'Name'
-    );
->>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
     Test.stopTest();
 
-    Assert.areEqual(accountName, queriedContact.Account.Name);
-    Assert.areEqual(contactName, queriedContact.Name);
-<<<<<<< HEAD
-    Assert.isNull(blah);
-=======
->>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
+    Assert.areEqual(
+      accountName,
+      queriedContact.Account.Name,
+      'Expected accountName to be equal to the queried contact\'s account name'
+    );
+    Assert.areEqual(
+      contactName,
+      queriedContact.Name,
+      'Expected contactName to be equal to the queried contact\'s name'
+    );
+    Assert.isNull(blah, 'Expected blah to be null');
   }
 
   @isTest
@@ -125,11 +128,20 @@ public class FieldUtilsTest {
       'Account.BLAH.name'
     );
 
-    Assert.isNull(obj2);
+    Assert.isNull(obj2, 'Expected obj2 to be null');
   }
 
   @isTest
-<<<<<<< HEAD
+  static void test_picklistMethods() {
+    Assert.isTrue(
+      FieldUtils.getPicklistLabels('Contact', 'LeadSource').contains('Web')
+    );
+    Assert.isTrue(
+      FieldUtils.getPicklistValues('Contact', 'LeadSource').contains('Web')
+    );
+  }
+
+  @isTest
   static void test_fieldSetMethods() {
     try {
       // cannot create field set in test class; this is the best we can do:
@@ -167,12 +179,30 @@ public class FieldUtilsTest {
 
   @isTest
   static void test_fieldPermissionMethods() {
-    Assert.isTrue(FieldUtils.isFieldUpdateable(Account.Name));
-    Assert.isTrue(FieldUtils.isFieldAccessible(Account.Name));
-    Assert.isTrue(FieldUtils.isFieldCreateable(Account.Name));
-    Assert.isFalse(FieldUtils.isFieldUpdateable(Account.CreatedDate));
-    Assert.isTrue(FieldUtils.isFieldAccessible(Account.CreatedDate));
-    Assert.isFalse(FieldUtils.isFieldCreateable(Account.CreatedDate));
+    Assert.isTrue(
+      FieldUtils.isFieldUpdateable(Account.Name),
+      'Expected isFieldUpdateble to be true for Account Name field'
+    );
+    Assert.isTrue(
+      FieldUtils.isFieldAccessible(Account.Name),
+      'Expected isFieldAccessible to be true for Account Name field'
+    );
+    Assert.isTrue(
+      FieldUtils.isFieldCreateable(Account.Name),
+      'Expected isFieldCreateable to be true for Account Name field'
+    );
+    Assert.isFalse(
+      FieldUtils.isFieldUpdateable(Account.CreatedDate),
+      'Expected isFieldUpdateble to be false for Created Date field'
+    );
+    Assert.isTrue(
+      FieldUtils.isFieldAccessible(Account.CreatedDate),
+      'Expected isFieldAccessible to be true for Created Date field'
+    );
+    Assert.isFalse(
+      FieldUtils.isFieldCreateable(Account.CreatedDate),
+      'Expected isFieldCreateable to be false for Created Date field'
+    );
   }
 
   @isTest
@@ -211,63 +241,43 @@ public class FieldUtilsTest {
     );
 
     Assert.isTrue(
-      FieldUtils.getAllCreatableFieldsAsStr('Account').length() > 0
+      FieldUtils.getAllCreatableFieldsAsStr('Account').length() > 0,
+      'Expected the length of Account createable fields string to be greater than 0'
     );
     Assert.isTrue(
-      FieldUtils.getAllCreatableFieldsAsStr('Account').contains('Name')
+      FieldUtils.getAllCreatableFieldsAsStr('Account').contains('Name'),
+      'Expected the Account createable fields string to contain "Name"'
     );
     Assert.isFalse(
-      FieldUtils.getAllCreatableFieldsAsStr('Account').contains('CreatedById')
+      FieldUtils.getAllCreatableFieldsAsStr('Account').contains('CreatedById'),
+      'Expected the Account createable fields string to contain "CreatedById"'
     );
 
     Assert.isTrue(
-      FieldUtils.getAllUpdateableFieldsAsStr('Account').length() > 0
+      FieldUtils.getAllUpdateableFieldsAsStr('Account').length() > 0,
+      'Expected the length of Account updateable fields string to be greater than 0'
     );
     Assert.isTrue(
-      FieldUtils.getAllUpdateableFieldsAsStr('Account').contains('Name')
+      FieldUtils.getAllUpdateableFieldsAsStr('Account').contains('Name'),
+      'Expected the Account updateable fields string to contain "Name"'
     );
     Assert.isFalse(
-      FieldUtils.getAllUpdateableFieldsAsStr('Account').contains('CreatedById')
+      FieldUtils.getAllUpdateableFieldsAsStr('Account').contains('CreatedById'),
+      'Expected the Account updateable fields string to contain "CreatedById"'
     );
 
     Assert.isTrue(
-      FieldUtils.getAllAccessibleFieldsAsStr('Account').length() > 0
+      FieldUtils.getAllAccessibleFieldsAsStr('Account').length() > 0,
+      'Expected the length of Account accessible fields string to be greater than 0'
     );
     Assert.isTrue(
-      FieldUtils.getAllAccessibleFieldsAsStr('Account').contains('Name')
+      FieldUtils.getAllAccessibleFieldsAsStr('Account').contains('Name'),
+      'Expected the Account accessible fields string to contain "Name"'
     );
     Assert.isTrue(
-      FieldUtils.getAllAccessibleFieldsAsStr('Account').contains('CreatedById')
+      FieldUtils.getAllAccessibleFieldsAsStr('Account').contains('CreatedById'),
+      'Expected the Account accessible fields string to contain "CreatedById"'
     );
-=======
-  static void test_parsePropertiesFromFieldPath() {
-    String parsedPath = FieldUtils.parsePropertiesFromFieldPath(
-        'Contact',
-        'Account.Owner.UserRole.Name'
-      )
-      .parsedLabelNames;
-    Assert.areEqual(parsedPath, 'Account Owner Role Name');
-
-    List<String> parsedPath2 = FieldUtils.parsePropertiesFromFieldPath(
-        'Contact',
-        'Account.Owner.UserRole.Name'
-      )
-      .parsedObjApiNames;
-    Assert.areEqual(parsedPath2[0], 'Account');
-    Assert.areEqual(parsedPath2[1], 'User');
-    Assert.areEqual(parsedPath2[2], 'UserRole');
-  }
-
-  @isTest
-  static void test_getColumnHeaders() {
-    List<String> columnHeaders = FieldUtils.getColumnHeaders(
-      'Contact',
-      'Account.Name, Account.Owner.Name, Account.Owner.UserRole.Name'
-    );
-    Assert.areEqual(columnHeaders[0], 'Account Name');
-    Assert.areEqual(columnHeaders[1], 'Account Owner Name');
-    Assert.areEqual(columnHeaders[2], 'Account Owner Role Name');
->>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
   }
 
   /** HELPER METHODS */

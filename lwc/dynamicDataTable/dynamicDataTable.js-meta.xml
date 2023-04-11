@@ -5,15 +5,23 @@
     <masterLabel>Dynamic Data Table</masterLabel>
     <description>Easy Config Dynamic Data Table</description>
     <targets>
-        <target>lightning__RecordPage</target>
-        <target>lightning__FlowScreen</target>
+      <target>lightning__RecordPage</target>
+      <target>lightning__AppPage</target>
+      <target>lightning__HomePage</target>
+      <target>lightning__FlowScreen</target>
+      <target>lightningCommunity__Default</target>
+      <target>lightningCommunity__Page</target>
+      <target>lightningCommunity__Page_Layout</target>
     </targets>
     <targetConfigs>
-        <targetConfig targets="lightning__RecordPage">
+        <targetConfig
+      targets="lightning__RecordPage, lightning__AppPage, lightning__HomePage, lightningCommunity__Default"
+    >
             <property
         name="objApiName"
         label="Object API Name"
         required="true"
+        default="Contact"
         type="String"
         placeholder="Ex: Contact"
         description="Enter the object API Name"
@@ -23,6 +31,7 @@
         name="fieldPaths"
         type="String"
         required="true"
+        default="Id, Name"
         label="Field API Names and field paths"
         placeholder="Ex: Id, Name, Phone, Email, Account.Name"
         description="Enter a comma delimited list of fields/paths to query"
@@ -31,22 +40,12 @@
         name="whereClause"
         type="String"
         required="true"
+        default="Name != null"
         label="Where Clause"
         placeholder="Examples: AccountId = :recordId; NAME LIKE '%ABC%'"
         description="Enter where clause to filter records. Do not include WHERE in the value."
       />
       <property
-<<<<<<< HEAD
-=======
-        name="recordLimit"
-        type="Integer"
-        required="true"
-        label="Record Limit"
-        default="50"
-        description="Enter the desired record limit for the data table"
-      />
-      <property
->>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
         name="hideCheckboxColumn"
         type="Boolean"
         label="Hide Checkbox Column"
@@ -92,16 +91,6 @@
         description="Enter where clause to filter records. Do not include WHERE in the value."
       />
       <property
-<<<<<<< HEAD
-=======
-        name="recordLimit"
-        type="Integer"
-        required="true"
-        label="Record Limit"
-        description="Enter the desired record limit for the data table"
-      />
-      <property
->>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
         name="hideCheckboxColumn"
         type="Boolean"
         label="Hide Checkbox Column"
@@ -115,15 +104,12 @@
         description="Optionally enter row actions to be added to the table"
       />
       <property
-<<<<<<< HEAD
         name="suppressBottomBar"
         type="Boolean"
         label="Supress Bottom Bar"
         description="Optionally suppress the bottom bar that reveals the cancel and save button when a change is made to a cell"
       />
       <property
-=======
->>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
         name="recordId"
         type="String"
         label="Record Id"

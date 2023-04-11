@@ -2,12 +2,9 @@
  * Author      : Kevin Antonioli (braveitnow@pm.me)
  * Description : Provides test code coverage for RecordDataModels.cls
  * Created     : 03.30.2023
-<<<<<<< HEAD
  *
  * Revisions:
  * Date : Name : Notes
-=======
->>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
  */
 @isTest
 private class RecordDataModelsTest {
@@ -21,49 +18,43 @@ private class RecordDataModelsTest {
     insert contact;
 
     contact = [
-      SELECT Id, Name, Email, Account.Name
+      SELECT Id, Name, Email, Account.Name, AccountId, LeadSource
       FROM Contact
       WHERE Id = :contact.Id
     ];
 
-<<<<<<< HEAD
     RecordDataModels.RecordWrapper recordWrappers = new RecordDataModels.RecordWrapper(
       contact,
-      'Id, Name, Email, Account.Name',
+      'Id, Name, Email, Account.Name, AccountId, LeadSource',
       DataTableUtils.getColumnPropertiesList(
         'Contact',
-        'Id, Name, Email, Account.Name'
+        'Id, Name, Email, Account.Name, AccountId, LeadSource'
       )
     );
 
     Assert.areEqual(
       recordWrappers.fieldPropertyMap.get('Account Name').columnHeader,
-      'Account Name'
+      'Account Name',
+      'Expected columnHeader to be "Account Name"'
+    );
+    Assert.areEqual(
+      recordWrappers.fieldPropertyMap.get('Lead Source').columnHeader,
+      'Lead Source',
+      'Expected columnHeader to be "Lead Source"'
     );
     Assert.areEqual(
       recordWrappers.fieldPropertyMap.get('Account Name').fieldValue,
-      'Test Account 1'
-=======
-    RecordDataModels.RecordWrapper recordWrapperS = new RecordDataModels.RecordWrapper(
-      contact,
-      'Id, Name, Email, Account.Name',
-      new List<String>{ 'Id', 'Name', 'Email', 'Account Name' }
->>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
+      'Test Account 1',
+      'Expected fieldValue to be "Test Account 1"'
     );
   }
 
   /** HELPER METHODS */
   private static List<Account> createTestAccounts() {
     List<Account> accounts = new List<Account>();
-<<<<<<< HEAD
     accounts.add(new Account(Name = 'Test Account 1'));
     accounts.add(new Account(Name = 'Test Account 2'));
     accounts.add(new Account(Name = 'Test Account 3'));
-=======
-    accounts.add(new Account(Name = '1'));
-    accounts.add(new Account(Name = '2'));
-    accounts.add(new Account(Name = '3'));
->>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
 
     insert accounts;
     return accounts;
@@ -73,7 +64,8 @@ private class RecordDataModelsTest {
     return new Contact(
       FirstName = account.Name,
       LastName = account.name,
-      AccountId = account.Id
+      AccountId = account.Id,
+      LeadSource = 'Web'
     );
   }
 }

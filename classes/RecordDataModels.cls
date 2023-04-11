@@ -4,12 +4,9 @@
  *                  multi-select-lookup (LWC)
  *                  dynamic-data-table (LWC)
  * Created    : 03.30.2023
-<<<<<<< HEAD
  *
  * Revisions:
  * Date : Name : Notes
-=======
->>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
  */
 public class RecordDataModels {
   /**
@@ -21,16 +18,23 @@ public class RecordDataModels {
     @AuraEnabled
     public Object fieldValue;
     @AuraEnabled
-<<<<<<< HEAD
+    public Boolean isExtendedPath = false;
+    @AuraEnabled
     public String fieldApiName;
     @AuraEnabled
     public String fieldType;
     @AuraEnabled
-=======
->>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
     public String linkId;
     @AuraEnabled
     public String linkLabel;
+    @AuraEnabled
+    public String relObjName; // relationship object name (ex: Account)
+    @AuraEnabled
+    public String relObjApiName; // relationship object api name (ex: AccountId)
+    @AuraEnabled
+    public List<String> picklistLabels; // if the field is a picklist
+    @AuraEnabled
+    public List<String> picklistValues; // if the field is a picklist
   }
 
   /**
@@ -49,49 +53,46 @@ public class RecordDataModels {
     public RecordWrapper(
       SObject recordParam,
       String fieldPaths,
-<<<<<<< HEAD
       List<DataTableUtils.ColumnProperties> columnProperties
-=======
-      List<String> columnHeaders
->>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
     ) {
       this.record = recordParam;
-
-      List<String> fieldApiNameList = fieldPaths.split(',');
-      for (String fieldPath : fieldApiNameList) {
-        Integer index = fieldApiNameList.indexOf(fieldPath);
+      String objApiName = String.valueOf(recordParam.getSObjectType());
+      List<String> fieldPathList = fieldPaths.split(',');
+      for (String fieldPath : fieldPathList) {
+        Integer index = fieldPathList.indexOf(fieldPath);
         fieldPath = fieldPath.trim();
-<<<<<<< HEAD
         String columnHeader = columnProperties[index].columnHeaderLabel;
         FieldProperty fieldProperty = new FieldProperty();
         fieldProperty.columnHeader = columnHeader;
         fieldProperty.fieldType = columnProperties[index].fieldType;
-        fieldProperty.linkLabel = columnHeader + '^_^' + index;
+        fieldProperty.linkLabel = columnHeader;
+
         if (!fieldPath.contains('.')) {
+          if (fieldProperty.fieldType == 'REFERENCE') {
+            fieldProperty.relObjName = columnProperties[index].relObjName;
+            fieldProperty.relObjApiName = columnProperties[index].relObjApiName;
+          } else if (fieldProperty.fieldType == 'PICKLIST') {
+            fieldProperty.picklistLabels = FieldUtils.getPicklistLabels(
+              objApiName,
+              fieldPath
+            );
+            fieldProperty.picklistValues = FieldUtils.getPicklistValues(
+              objApiName,
+              fieldPath
+            );
+          }
           fieldProperty.fieldValue = recordParam.get(fieldPath);
           fieldProperty.fieldApiName = fieldPath;
           if (fieldProperty.fieldValue instanceof Id) {
             fieldProperty.linkId = String.valueOf(fieldProperty.fieldValue);
           }
         } else {
+          fieldProperty.isExtendedPath = true;
           fieldProperty.fieldValue = FieldUtils.parseValueFromFieldPath(
             recordParam,
             fieldPath
           );
           fieldProperty.fieldApiName = fieldPath.substringAfterLast('.');
-=======
-        String columnHeader = columnHeaders[index];
-        FieldProperty fieldProperty = new FieldProperty();
-        fieldProperty.columnHeader = columnHeader;
-        fieldProperty.linkLabel = columnHeader + '^_^' + index;
-        if (!fieldPath.contains('.')) {
-          fieldProperty.fieldValue = recordParam.get(fieldPath);
-        } else {
-          fieldProperty.fieldValue = FieldUtils.parseFieldPathForSObject(
-            recordParam,
-            fieldPath
-          );
->>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
           String finalPathSegment = fieldPath.contains('.')
             ? fieldPath.substringAfterLast('.')
             : fieldPath;
@@ -107,18 +108,13 @@ public class RecordDataModels {
       }
 
       Schema.DescribeSObjectResult describe = FieldUtils.getDynamicDescribe(
-        String.valueOf(recordParam.getSObjectType())
+        objApiName
       );
-      this.record = recordParam;
       this.objName = describe.getLabel();
       this.description = getDescriptionForPill(
         recordParam,
         fieldPaths,
-<<<<<<< HEAD
         columnProperties,
-=======
-        columnHeaders,
->>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
         describe
       );
     }
@@ -128,35 +124,23 @@ public class RecordDataModels {
    * @desciption: get the description to apply multi-select-lookup lwc pill containers
    * @param     record          record to parse description from
    * @param     fieldPaths      field paths to parse from record
-<<<<<<< HEAD
    * @param     columnProperties   object names to inject into description
-=======
-   * @param     columnHeaders   object names to inject into description
->>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
    * @param     describe        DescribeSObjectResult for record
    * @return    description     description to inject into pill container
    */
   private static String getDescriptionForPill(
     SObject record,
     String fieldPaths,
-<<<<<<< HEAD
     List<DataTableUtils.ColumnProperties> columnProperties,
-=======
-    List<String> columnHeaders,
->>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
     Schema.DescribeSObjectResult describe
   ) {
     String description = String.valueOf(record.get('Name'));
     if (fieldPaths != null) {
-      List<String> fieldApiNameList = fieldPaths.split(',');
-      for (String fieldPath : fieldApiNameList) {
-        Integer index = fieldApiNameList.indexOf(fieldPath);
+      List<String> fieldPathList = fieldPaths.split(',');
+      for (String fieldPath : fieldPathList) {
+        Integer index = fieldPathList.indexOf(fieldPath);
         fieldPath = fieldPath.trim();
-<<<<<<< HEAD
         String columnHeader = columnProperties[index].columnHeaderLabel;
-=======
-        String columnHeader = columnHeaders[index];
->>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
         if (
           fieldPath.toUpperCase() != 'ID' &&
           fieldPath.toUpperCase() != 'NAME'
@@ -166,11 +150,7 @@ public class RecordDataModels {
             columnHeader +
             ': ' +
             String.valueOf(
-<<<<<<< HEAD
               FieldUtils.parseValueFromFieldPath(record, fieldPath)
-=======
-              FieldUtils.parseFieldPathForSObject(record, fieldPath)
->>>>>>> 04bc7c049c1d7e51a1c16ebc0d8b359f68cc323a
             );
         }
       }

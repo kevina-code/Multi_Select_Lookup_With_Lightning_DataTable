@@ -14,8 +14,12 @@ private class DataTableUtilsTest {
         'Contact',
         'Account.Owner.UserRole.Name'
       )[2]
-      .objLabelName;
-    Assert.areEqual(parsedFromPath, 'Role');
+      .segmentObjLabelName;
+    Assert.areEqual(
+      parsedFromPath,
+      'Role',
+      'Expected parsedFromPath value to be "Role"'
+    );
   }
 
   @isTest
@@ -36,9 +40,17 @@ private class DataTableUtilsTest {
       )
       .isUpdateable;
 
-    Assert.areEqual(columnHeaderLabel, 'Account Owner Role Name');
-    Assert.areEqual(fieldType, 'STRING');
-    Assert.isFalse(isUpdateable);
+    Assert.areEqual(
+      columnHeaderLabel,
+      'Account Owner Role Name',
+      'Expected columnHeaderLabel value to be "Account Owner Role Name"'
+    );
+    Assert.areEqual(
+      fieldType,
+      'STRING',
+      'Expected fieldType value to be "STRING"'
+    );
+    Assert.isFalse(isUpdateable, 'Expected isUpdateable value to be False');
   }
 
   @isTest
@@ -47,18 +59,36 @@ private class DataTableUtilsTest {
       'Contact',
       'Account.Name, Account.Owner.Name, Account.Owner.UserRole.Name'
     );
-    Assert.areEqual(columnProperties[0].columnHeaderLabel, 'Account Name');
+    Assert.areEqual(
+      columnProperties[0].columnHeaderLabel,
+      'Account Name',
+      'Expected the first columnProperties in the list to have a columnHeaderLabel of "Account Name"'
+    );
     Assert.areEqual(
       columnProperties[1].columnHeaderLabel,
-      'Account Owner Name'
+      'Account Owner Name',
+      'Expected the second columnProperties in the list to have a columnHeaderLabel of "Account Owner Name"'
     );
     Assert.areEqual(
       columnProperties[2].columnHeaderLabel,
-      'Account Owner Role Name'
+      'Account Owner Role Name',
+      'Expected the third columnProperties in the list to have a columnHeaderLabel of "Account Owner Role Name"'
     );
-    Assert.areEqual(columnProperties[0].fieldType, 'STRING');
-    Assert.areEqual(columnProperties[1].fieldType, 'STRING');
-    Assert.areEqual(columnProperties[2].fieldType, 'STRING');
+    Assert.areEqual(
+      columnProperties[0].fieldType,
+      'STRING',
+      'Expected the first columnProperties in the list to have a fieldType of "STRING"'
+    );
+    Assert.areEqual(
+      columnProperties[1].fieldType,
+      'STRING',
+      'Expected the second columnProperties in the list to have a fieldType of "STRING"'
+    );
+    Assert.areEqual(
+      columnProperties[2].fieldType,
+      'STRING',
+      'Expected the third columnProperties in the list to have a fieldType of "STRING"'
+    );
   }
 
   /** HELPER METHODS */
