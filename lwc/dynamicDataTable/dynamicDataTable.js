@@ -8,6 +8,7 @@ import { NavigationMixin } from "lightning/navigation";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
 import { updateRecord, deleteRecord } from "lightning/uiRecordApi";
 import { refreshApex } from "@salesforce/apex";
+import { getDataTableWrapper } from "c/lwcUtils";
 import getRecordWrappers from "@salesforce/apex/DynamicDataTableCtrl.getRecordWrappers";
 import getTableProperties from "@salesforce/apex/DynamicDataTableCtrl.getTableProperties";
 
@@ -19,7 +20,6 @@ export default class DynamicDataTable extends NavigationMixin(
   LightningElement
 ) {
   @api recordId;
-  @api hasLoaded = false;
 
   // target configs:
   @api title;
@@ -29,15 +29,13 @@ export default class DynamicDataTable extends NavigationMixin(
   @api hideCheckboxColumn;
   @api actionsStr;
   @api suppressBottomBar;
+  @api enforceAccessibleFls; // whether to enforce accessible field level security (to control visibility of columns)
 
   @api recordData = [];
+  @api colHeaderMap = {}; // column header to column properties
   @api linkifiedColumns = [];
   @api selectedRowIds = [];
-  @api colHeaderMap = {}; // column header to column properties
   columnHeaders = [];
-
-  fieldTypes = [];
-  fieldUpdateables = [];
 
   wiredRecordWrappersResult;
   draftValues = [];
@@ -82,11 +80,11 @@ export default class DynamicDataTable extends NavigationMixin(
   })
   wiredRecordWrappers(result) {
     this.wiredRecordWrappersResult = result;
-    console.log("dynamicDataTable wiredRecords error", result.error);
-    console.log("dynamicDataTable wiredRecords result.data", result.data);
     if (result.data) {
-      this.hasLoaded = true;
-      this.recordData = this.assimilateRecordData(result.data);
+      const wrapper = getDataTableWrapper(result.data);
+      this.recordData = wrapper.records;
+      this.colHeaderMap = wrapper.colHeaderMap;
+      this.linkifiedColumns = wrapper.linkifiedColumns;
     } else if (result.error) {
       console.log(
         "dynamicDataTable wiredRecords error",
@@ -110,15 +108,8 @@ export default class DynamicDataTable extends NavigationMixin(
     fieldPaths: "$fieldPaths"
   })
   wiredFieldProperties(result) {
-    console.log("dynamicDataTable wiredFieldProperties error", result.error);
-    console.log(
-      "dynamicDataTable wiredFieldProperties result.data",
-      result.data
-    );
     if (result.data) {
       this.columnHeaders = result.data.columnHeaders;
-      this.fieldTypes = result.data.fieldTypes;
-      this.fieldUpdateables = result.data.fieldUpdateables;
     } else if (result.error) {
       console.log(
         "dynamicDataTable wiredFieldProperties error",
@@ -134,44 +125,9 @@ export default class DynamicDataTable extends NavigationMixin(
     }
   }
 
-  // assimilate records with custom properties
-  assimilateRecordData(items) {
-    const tempRecList = [];
-    // add custom properties here since we can't do that to SObject records in apex
-    items.forEach((recordWrapper) => {
-      const tempRec = Object.assign({}, recordWrapper.record);
-      for (const prop in recordWrapper.fieldPropertyMap) {
-        if (
-          Object.prototype.hasOwnProperty.call(
-            recordWrapper.fieldPropertyMap,
-            prop
-          )
-        ) {
-          const fieldProperty = recordWrapper.fieldPropertyMap[prop];
-          tempRec[fieldProperty.columnHeader + chDelimiter] =
-            fieldProperty.fieldValue;
-          this.colHeaderMap[fieldProperty.columnHeader] = fieldProperty;
-          if (fieldProperty.linkId) {
-            this.linkifiedColumns.push(fieldProperty.columnHeader);
-            tempRec[fieldProperty.columnHeader + linkIdDelimiter] =
-              "/" + fieldProperty.linkId;
-            tempRec[fieldProperty.linkLabel + linkLabelDelimiter] =
-              fieldProperty.fieldValue;
-          }
-          if (fieldProperty.fieldType === "REFERENCE") {
-            const relObj = {};
-            relObj.Id = tempRec.Id;
-            relObj.Name = tempRec.Name;
-          }
-        }
-      }
-      tempRec.objName = recordWrapper.objName;
-      tempRec.RecName = "/" + tempRec.Id;
-      tempRecList.push(tempRec);
-    });
-    return tempRecList;
-  }
-
+  /**
+   * get record actions
+   */
   get actions() {
     const actionsList = [];
     if (
@@ -193,21 +149,32 @@ export default class DynamicDataTable extends NavigationMixin(
     return actionsList;
   }
 
+  /**
+   * assemble data table columns based on configs
+   */
   get columns() {
     try {
       const fieldPathArray = this.fieldPaths.replace(/\s/g, "").split(",");
       const columnList = [];
       for (let i = 0; i < fieldPathArray.length; i++) {
         const fieldPath = fieldPathArray[i];
-        const fieldType = this.fieldTypes[i];
-        const type = this.fieldTypeMap.get(this.fieldTypes[i]);
         const fieldProperty = this.colHeaderMap[this.columnHeaders[i]];
-        if (fieldPath.toUpperCase() !== "ID") {
+        const fieldType = fieldProperty.fieldType;
+        const isAccessible = fieldProperty.isAccessible;
+        const type = this.fieldTypeMap.get(fieldType);
+        // don't create a column for the record's Id field,
+        //  since it will be merged into the Name field to create a link to the record
+        console.log("enforceAccessibleFls: ", this.enforceAccessibleFls);
+        console.log("isAccessible: ", this.isAccessible);
+        if (
+          fieldPath.toUpperCase() !== "ID" &&
+          (!this.enforceAccessibleFls || isAccessible)
+        ) {
           const isExtendedPath = fieldProperty.isExtendedPath;
           const column = {};
           column.label = this.columnHeaders[i];
           column.type = type;
-          column.editable = this.fieldUpdateables[i];
+          column.editable = fieldProperty.isUpdateable;
           column.sortable = true;
 
           const _fieldApiName = fieldProperty.fieldApiName;
@@ -294,7 +261,9 @@ export default class DynamicDataTable extends NavigationMixin(
         });
       }
       return columnList;
-    } catch (error) {}
+    } catch (error) {
+      console.log("-------dynamicDataTable columns error-------" + error);
+    }
   }
 
   // handle when user selects row from data table
@@ -394,22 +363,7 @@ export default class DynamicDataTable extends NavigationMixin(
         (record) => record.Id === updatedItem.Id
       );
     } else {
-      // if we have not yet added this row to the draftValues list,
-      //  add it. Otherwise, find the applicable row and morph it to append the new draft value
-      if (!this.draftValues.find((record) => record.Id === recordId)) {
-        this.draftValues.push(updatedItem);
-      } else {
-        const filteredRow = this.draftValues.filter(function (row) {
-          return row.Id === recordId;
-        })[0];
-        filteredRow[colHeaderName] = updatedItem[colHeaderName];
-
-        const index = this.draftValues.findIndex((record) => {
-          return record.Id === recordId;
-        });
-        this.draftValues[index] = filteredRow;
-      }
-
+      this.appendDraftValues(updatedItem);
       this.updateDraftValues(updatedItem);
       this.updateDataValues(updatedItem);
       if (index > -1) {
@@ -435,19 +389,21 @@ export default class DynamicDataTable extends NavigationMixin(
     this.dispatchEvent(cellChangedEvent);
   }
 
-  //updates datatable
+  // handle when user changes a picklist field value in the data table
   handlePicklistChanged(event) {
     event.stopPropagation();
-    let dataReceived = event.detail.data;
+    const dataReceived = event.detail.data;
     const fieldApiName = dataReceived.fieldApiName;
-    let updatedItem = {
+    const updatedItem = {
       Id: dataReceived.context
     };
     updatedItem[fieldApiName] = dataReceived.value;
+    this.appendDraftValues(updatedItem);
     this.updateDraftValues(updatedItem);
     this.updateDataValues(updatedItem);
   }
 
+  // handle when user changes a lookup field value in the data table
   handleLookupSelection(event) {
     event.stopPropagation();
     const dataReceived = event.detail.data;
@@ -456,51 +412,73 @@ export default class DynamicDataTable extends NavigationMixin(
       Id: dataReceived.key
     };
     updatedItem[relField] = dataReceived.selectedId;
+    this.appendDraftValues(updatedItem);
     this.updateDraftValues(updatedItem);
     this.updateDataValues(updatedItem);
   }
 
-  updateDraftValues(updateItem) {
+  // handle when user changes a cell in the table to a valid value
+  appendDraftValues(item) {
+    // if we have not yet added this row to the draftValues list,
+    //  add it. Otherwise, find the applicable row and morph it to append the new draft value
+    const colHeaderName = Object.keys(item)[0];
+    if (!this.draftValues.find((record) => record.Id === item.Id)) {
+      this.draftValues.push(item);
+    } else {
+      const filteredRow = this.draftValues.filter(function (row) {
+        return row.Id === item.Id;
+      })[0];
+      filteredRow[colHeaderName] = item[colHeaderName];
+
+      const index = this.draftValues.findIndex((record) => {
+        return record.Id === item.Id;
+      });
+      this.draftValues[index] = filteredRow;
+    }
+  }
+
+  // update draft values when user changes a data table cell's value
+  updateDraftValues(updatedItem) {
     let draftValueChanged = false;
     const copyDraftValues = [...this.draftValues];
 
     const applicableRow = copyDraftValues.filter(function (row) {
-      return row.Id === updateItem.Id;
+      return row.Id === updatedItem.Id;
     })[0];
 
-    for (const field in updateItem) {
-      applicableRow[field] = updateItem[field];
+    for (const field in updatedItem) {
+      applicableRow[field] = updatedItem[field];
       draftValueChanged = true;
     }
     const index = copyDraftValues.findIndex((row) => {
-      return row.Id === updateItem.Id;
+      return row.Id === updatedItem.Id;
     });
     Object.assign(copyDraftValues[index], applicableRow);
-
     if (draftValueChanged) {
       this.draftValues = [...copyDraftValues];
     } else {
-      this.draftValues = [...copyDraftValues, updateItem];
+      this.draftValues = [...copyDraftValues, updatedItem];
     }
   }
 
-  updateDataValues(updateItem) {
+  // update recordData variable when user changes a data table cell's value
+  updateDataValues(updatedItem) {
     const copyData = JSON.parse(JSON.stringify([...this.recordData]));
 
-    // get the full record for updateItem from this.recordData
+    // get the full record for updatedItem from this.recordData
     const applicableRecord = JSON.parse(
       JSON.stringify(
         [...this.recordData].filter(function (record) {
-          return record.Id === updateItem.Id;
+          return record.Id === updatedItem.Id;
         })[0]
       )
     );
 
-    for (const field in updateItem) {
-      applicableRecord[field] = updateItem[field];
+    for (const field in updatedItem) {
+      applicableRecord[field] = updatedItem[field];
     }
     const index = copyData.findIndex((record) => {
-      return record.Id === updateItem.Id;
+      return record.Id === updatedItem.Id;
     });
     Object.assign(copyData[index], applicableRecord);
 
@@ -517,13 +495,13 @@ export default class DynamicDataTable extends NavigationMixin(
     }
 
     // replace column header names with field api names:
-    const curatedSaveDraftValues = this.draftValues.map((o) =>
+    const curatedDraftValues = this.draftValues.map((o) =>
       Object.fromEntries(
         Object.entries(o).map(([k, v]) => [colHeaderToFieldApiName[k] ?? k, v])
       )
     );
 
-    const recordInputs = curatedSaveDraftValues.slice().map((draft) => {
+    const recordInputs = curatedDraftValues.slice().map((draft) => {
       const fields = Object.assign({}, draft);
       return { fields };
     });

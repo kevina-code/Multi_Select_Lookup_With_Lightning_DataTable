@@ -104,7 +104,7 @@ public class DynamicDataTableCtrl {
   }
 
   /**
-   * @description: get field paths to query for data table\
+   * @description: get field paths to query for data table
    * @param   objApiName            object api name to query
    * @param   fieldPaths            comma delimited string of field paths specified in config
    * @return  fieldPathsToQuery     a list of field paths to query

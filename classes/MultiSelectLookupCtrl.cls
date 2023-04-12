@@ -155,7 +155,6 @@ public class MultiSelectLookupCtrl {
             objApiName
           )
           .fields.GetMap();
-        System.debug('xxx field: ' + field);
         if (
           String.valueOf(fieldMap.get(field).getDescribe().getType()) ==
           'REFERENCE'

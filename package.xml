@@ -17,9 +17,14 @@
     </types>
     <types>
         <members>dynamicDataTable</members>
+        <members>lwcUtils</members>
         <members>multiSelectLookup</members>
         <members>multiSelectLookupWithDataTable</members>
         <name>LightningComponentBundle</name>
+    </types>
+    <types>
+        <members>CustomDataTable</members>
+        <name>StaticResource</name>
     </types>
     <version>57.0</version>
 </Package>

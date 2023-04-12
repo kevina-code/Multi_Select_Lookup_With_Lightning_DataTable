@@ -24,6 +24,10 @@ public class RecordDataModels {
     @AuraEnabled
     public String fieldType;
     @AuraEnabled
+    public Boolean isAccessible = false;
+    @AuraEnabled
+    public Boolean isUpdateable = false;
+    @AuraEnabled
     public String linkId;
     @AuraEnabled
     public String linkLabel;
@@ -65,6 +69,8 @@ public class RecordDataModels {
         FieldProperty fieldProperty = new FieldProperty();
         fieldProperty.columnHeader = columnHeader;
         fieldProperty.fieldType = columnProperties[index].fieldType;
+        fieldProperty.isAccessible = columnProperties[index].isAccessible;
+        fieldProperty.isUpdateable = columnProperties[index].isUpdateable;
         fieldProperty.linkLabel = columnHeader;
 
         if (!fieldPath.contains('.')) {

@@ -48,6 +48,7 @@
       <property
         name="hideCheckboxColumn"
         type="Boolean"
+        default="false"
         label="Hide Checkbox Column"
         description="Optionally hide the checkbox column in the data table"
       />
@@ -61,8 +62,16 @@
       <property
         name="suppressBottomBar"
         type="Boolean"
+        default="false"
         label="Supress Bottom Bar"
         description="Optionally suppress the bottom bar that reveals the cancel and save button when a change is made to a cell"
+      />
+      <property
+        name="enforceAccessibleFls"
+        type="Boolean"
+        default="false"
+        label="Enforce Accessible FLS"
+        description="Optionally enforce whether fields in the datatable are accessible through Field Level Security"
       />
         </targetConfig>
         <targetConfig targets="lightning__FlowScreen">
@@ -93,6 +102,7 @@
       <property
         name="hideCheckboxColumn"
         type="Boolean"
+        default="false"
         label="Hide Checkbox Column"
         description="Optionally hide the checkbox column in the data table"
       />
@@ -106,8 +116,16 @@
       <property
         name="suppressBottomBar"
         type="Boolean"
+        default="false"
         label="Supress Bottom Bar"
         description="Optionally suppress the bottom bar that reveals the cancel and save button when a change is made to a cell"
+      />
+      <property
+        name="enforceAccessibleFls"
+        type="Boolean"
+        default="false"
+        label="Enforce Accessible FLS"
+        description="Optionally enforce whether fields in the datatable are accessible through Field Level Security"
       />
       <property
         name="recordId"

@@ -7,15 +7,12 @@
 /* eslint-disable @lwc/lwc/no-leading-uppercase-api-name */
 import { LightningElement, api } from "lwc";
 import { ShowToastEvent } from "lightning/platformShowToastEvent";
+import { getDataTableWrapper } from "c/lwcUtils";
 import retrieveSearchData from "@salesforce/apex/MultiSelectLookupCtrl.retrieveSearchData";
-
-const linkIdDelimiter = "_^_";
-const linkLabelDelimiter = "^_^";
-const chDelimiter = "@_@";
 
 export default class MultiSelectLookup extends LightningElement {
   @api recordId;
-  @api Label;
+  @api label;
   @api context = "multi select lookup";
   recordLimit = "10";
 
@@ -57,9 +54,10 @@ export default class MultiSelectLookup extends LightningElement {
       .then((result) => {
         this.searchResultWrappers = result;
         if (searchKey && searchKey.length > 0) {
-          this.searchResultRecords = this.assimilateRecordData(
-            this.searchResultWrappers
-          );
+          const wrapper = getDataTableWrapper(result);
+          this.searchResultRecords = wrapper.records;
+          this.colHeaderMap = wrapper.colHeaderMap;
+          this.linkifiedColumns = wrapper.linkifiedColumns;
         } else {
           this.searchResultWrappers = [];
           this.searchResultRecords = [];
@@ -100,50 +98,13 @@ export default class MultiSelectLookup extends LightningElement {
         this.dispatchEvent(
           new ShowToastEvent({
             title: "Error retrieving search data",
-            message: error.body.message,
+            message:
+              "multiSelectLookup.searchField error: " + error.body.message,
             variant: "error",
             mode: "sticky"
           })
         );
       });
-  }
-
-  // assimilate records with custom properties
-  assimilateRecordData(items) {
-    const tempRecList = [];
-    // add custom properties here since we can't do that to SObject records in apex
-    items.forEach((recordWrapper) => {
-      const tempRec = Object.assign({}, recordWrapper.record);
-      for (const prop in recordWrapper.fieldPropertyMap) {
-        if (
-          Object.prototype.hasOwnProperty.call(
-            recordWrapper.fieldPropertyMap,
-            prop
-          )
-        ) {
-          const fieldProperty = recordWrapper.fieldPropertyMap[prop];
-          tempRec[fieldProperty.columnHeader + chDelimiter] =
-            fieldProperty.fieldValue;
-          this.colHeaderMap[fieldProperty.columnHeader] = fieldProperty;
-          if (fieldProperty.linkId) {
-            this.linkifiedColumns.push(fieldProperty.columnHeader);
-            tempRec[fieldProperty.columnHeader + linkIdDelimiter] =
-              "/" + fieldProperty.linkId;
-            tempRec[fieldProperty.linkLabel + linkLabelDelimiter] =
-              fieldProperty.fieldValue;
-          }
-          if (fieldProperty.fieldType === "REFERENCE") {
-            const relObj = {};
-            relObj.Id = tempRec.Id;
-            relObj.Name = tempRec.Name;
-          }
-        }
-      }
-      tempRec.objName = recordWrapper.objName;
-      tempRec.RecName = "/" + tempRec.Id;
-      tempRecList.push(tempRec);
-    });
-    return tempRecList;
   }
 
   // handle when user types keys into search field
@@ -206,7 +167,7 @@ export default class MultiSelectLookup extends LightningElement {
       this.dispatchEvent(
         new ShowToastEvent({
           title: "Toggle result error",
-          message: "Toggle result error",
+          message: "multiSelectLookup.toggleResult error",
           variant: "error"
         })
       );
@@ -231,11 +192,12 @@ export default class MultiSelectLookup extends LightningElement {
         (data) => data.Id === recId
       );
       this.selectedRecords.push(applicableRecord);
-      const selectedRecs = this.selectedRecords;
 
+      const selectedRecs = this.selectedRecords;
       const linkifiedColumns = this.linkifiedColumns;
+      const colHeaderMap = this.colHeaderMap;
       const selectedEvent = new CustomEvent("selected", {
-        detail: { selectedRecs, linkifiedColumns }
+        detail: { selectedRecs, linkifiedColumns, colHeaderMap }
       });
       this.dispatchEvent(selectedEvent);
 
@@ -266,7 +228,7 @@ export default class MultiSelectLookup extends LightningElement {
       this.dispatchEvent(
         new ShowToastEvent({
           title: "Error removing records",
-          message: "Error removing records",
+          message: "multiSelectLookup.removeRecord error",
           variant: "error"
         })
       );

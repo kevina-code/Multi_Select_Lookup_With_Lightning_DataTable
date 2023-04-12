@@ -115,6 +115,7 @@ public without sharing class DataTableUtils {
     public String columnHeaderLabel;
     public String fieldType;
     public Boolean isUpdateable = false;
+    public Boolean isAccessible = false;
     public String relObjName;
     public String relObjApiName; // relationship field obj api name (for AccountId, this would be 'Account')
   }
@@ -141,13 +142,18 @@ public without sharing class DataTableUtils {
         objApiName
       );
       columnProperties.columnHeaderLabel = pppList[0].segmentObjLabelName;
-      columnProperties.fieldType = String.valueOf(
-        describe.Fields.getMap().get(fieldPath).getDescribe().getType()
+      columnProperties.fieldType = FieldUtils.getFieldType(
+        objApiName,
+        fieldPath
       );
-      columnProperties.isUpdateable = describe.fields.getMap()
-        .get(fieldPath)
-        .getDescribe()
-        .isUpdateable();
+      columnProperties.isAccessible = FieldUtils.isFieldAccessible(
+        objApiName,
+        fieldPath
+      );
+      columnProperties.isUpdateable = FieldUtils.isFieldUpdateable(
+        objApiName,
+        fieldPath
+      );
       columnProperties.relObjName = columnProperties.columnHeaderLabel.removeEnd(
         ' ID'
       );
@@ -161,12 +167,13 @@ public without sharing class DataTableUtils {
       String subObjApiName = pppList[pppList.size() - 1].objApiName;
       String fieldApiName = pppList[pppList.size() - 1].segmentFieldApiName;
       columnProperties.columnHeaderLabel = columnHeaderLabel.trim();
-      columnProperties.fieldType = String.valueOf(
-        FieldUtils.getDynamicDescribe(subObjApiName)
-          .Fields.getMap()
-          .get(fieldApiName)
-          .getDescribe()
-          .getType()
+      columnProperties.fieldType = FieldUtils.getFieldType(
+        subObjApiName,
+        fieldApiName
+      );
+      columnProperties.isAccessible = FieldUtils.isFieldAccessible(
+        subObjApiName,
+        fieldApiName
       );
     }
     return columnProperties;
