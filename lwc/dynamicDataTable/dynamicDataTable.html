@@ -1,43 +1,26 @@
 <template>
   <div class="slds-p-horizontal_small">
     <div lwc:if={recordData.length} class="slds-m-top_medium">
-      <div lwc:if={hideCheckboxColumn}>
-        <c-dynamic-data-table-ext
-          key-field="Id"
-          data={recordData}
-          columns={columns}
-          errors={errors}
-          suppress-bottom-bar={suppressBottomBar}
-          onrowselection={handleRowSelection}
-          onrowaction={handleRowAction}
-          selected-rows={selectedRowIds}
-          onsave={handleSave}
-          oncellchange={handleCellChange}
-          onlookupvalueselect={handleLookupSelection}
-          onpicklistchanged={handlePicklistChanged}
-          draft-values={draftValues}
-          hide-checkbox-column
-        >
-        </c-dynamic-data-table-ext>
-      </div>
-      <div lwc:else>
-        <c-dynamic-data-table-ext
-          key-field="Id"
-          data={recordData}
-          columns={columns}
-          errors={errors}
-          suppress-bottom-bar={suppressBottomBar}
-          onrowselection={handleRowSelection}
-          onrowaction={handleRowAction}
-          oncellchange={handleCellChange}
-          selected-rows={selectedRowIds}
-          onlookupvalueselect={handleLookupSelection}
-          onpicklistchanged={handlePicklistChanged}
-          draft-values={draftValues}
-          onsave={handleSave}
-        >
-        </c-dynamic-data-table-ext>
-      </div>
+      <c-dynamic-data-table-ext
+        key-field="Id"
+        data={recordData}
+        columns={columns}
+        errors={errors}
+        selected-rows={selectedRowIds}
+        draft-values={draftValues}
+        onrowselection={handleRowSelection}
+        oncellchange={handleCellChange}
+        onlookupchanged={handleLookupSelection}
+        onpicklistchanged={handlePicklistChanged}
+        onmultipicklistchanged={handleMultiPicklistChanged}
+        onrowaction={handleRowAction}
+        onsave={handleSave}
+        hide-checkbox-column={hideCheckboxColumn}
+        suppress-bottom-bar={suppressBottomBar}
+        enforce-accessible-fls={enforceAccessibleFls}
+        make-columns-read-only={makeColumnsReadOnly}
+      >
+      </c-dynamic-data-table-ext>
     </div>
   </div>
 </template>

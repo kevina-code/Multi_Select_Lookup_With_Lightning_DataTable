@@ -1,0 +1,33 @@
+<template>
+  <div class="picklist-container">
+    <div lwc:if={hasLoaded}>
+      <div if:false={makeColumnsReadOnly} class="slds-p-around_xx-small">
+        <lightning-combobox
+          value={value}
+          options={optionsDynamic}
+          placeholder="Select values"
+          onchange={handleSelect}
+          disabled={makeColumnsReadOnly}
+        ></lightning-combobox>
+      </div>
+      <div class="slds-p-around_xx-small">
+        <template for:each={selectedValues} for:item="val">
+          <template lwc:if={makeColumnsReadOnly}>
+            <p key={val} style="border: 1px solid black">
+              <lightning-formatted-text value={val}></lightning-formatted-text>
+            </p>
+          </template>
+          <template lwc:else>
+            <lightning-pill
+              key={val}
+              name={val}
+              label={val}
+              onremove={handleRemove}
+            ></lightning-pill>
+            <br key={val} />
+          </template>
+        </template>
+      </div>
+    </div>
+  </div>
+</template>

@@ -159,24 +159,6 @@ public class FieldUtils {
   }
 
   /**
-   * @description: given an SObjectField (ex: Account.Name), determine if the field is createable
-   * @param   sObjField   field to check if it is createable
-   * @return  whether or not the field is createable
-   */
-  public static Boolean isFieldCreateable(Schema.SObjectField sObjField) {
-    String objApiName = String.valueOf(
-      sObjField.getDescribe().getsObjectType()
-    );
-    String fieldApiName = String.valueOf(
-      sObjField.getDescribe().getSobjectField()
-    );
-    return getFieldMap(objApiName)
-      .get(fieldApiName)
-      .getDescribe()
-      .isCreateable();
-  }
-
-  /**
    * @description: given an object api name and a field Api Name, determine if the field is createable
    * @param   objApiName      object api name (ex: 'Account')
    * @param   fieldApiName    field as string to check if it is createable (ex: 'Industry')
@@ -190,24 +172,6 @@ public class FieldUtils {
       .get(fieldApiName)
       .getDescribe()
       .isCreateable();
-  }
-
-  /**
-   * @description: given an SObjectField (ex: Account.Name), determine if the field is accessible
-   * @param   sObjField   field to check if it is accessible
-   * @return  whether or not the field is accessible
-   */
-  public static Boolean isFieldAccessible(Schema.SObjectField sObjField) {
-    String objApiName = String.valueOf(
-      sObjField.getDescribe().getsObjectType()
-    );
-    String fieldApiName = String.valueOf(
-      sObjField.getDescribe().getSobjectField()
-    );
-    return getFieldMap(objApiName)
-      .get(fieldApiName)
-      .getDescribe()
-      .isAccessible();
   }
 
   /**
@@ -227,24 +191,6 @@ public class FieldUtils {
   }
 
   /**
-   * @description: given an SObjectField (ex: Account.Name), determine if the field is updateable
-   * @param   sObjField   field to check if it is updateable
-   * @return  whether or not the field is updateable
-   */
-  public static Boolean isFieldUpdateable(Schema.SObjectField sObjField) {
-    String objApiName = String.valueOf(
-      sObjField.getDescribe().getsObjectType()
-    );
-    String fieldApiName = String.valueOf(
-      sObjField.getDescribe().getSobjectField()
-    );
-    return getFieldMap(objApiName)
-      .get(fieldApiName)
-      .getDescribe()
-      .isUpdateable();
-  }
-
-  /**
    * @description: given an object api name and a field Api Name, determine if the field is updateable
    * @param   objApiName      object api name (ex: 'Account')
    * @param   fieldApiName    field as string to check if it is updateable (ex: 'Industry')
@@ -258,23 +204,6 @@ public class FieldUtils {
       .get(fieldApiName)
       .getDescribe()
       .isUpdateable();
-  }
-
-  /**
-   * @description: given an SObjectField (ex: Account.Industry), determine if the field type
-   * @param   sObjField   field to get the field type for
-   * @return  String      the field type (ex: 'PICKLIST')
-   */
-  public static String getFieldType(Schema.SObjectField sObjField) {
-    String objApiName = String.valueOf(
-      sObjField.getDescribe().getsObjectType()
-    );
-    String fieldApiName = String.valueOf(
-      sObjField.getDescribe().getSobjectField()
-    );
-    return String.valueOf(
-      getFieldMap(objApiName).get(fieldApiName).getDescribe().getType()
-    );
   }
 
   /**
@@ -314,19 +243,15 @@ public class FieldUtils {
    * @return List of creatable fields for a given SObject.
    */
   public static List<String> getCreatableFields(String objApiName) {
-    // Get a map of field name and field token
-    Map<String, Schema.SObjectField> fieldMap = getFieldMap(objApiName);
-
     List<String> creatableFields = new List<String>();
-    if (fieldMap != null) {
-      for (Schema.SObjectField field : fieldMap.values()) {
-        if (isFieldCreateable(field)) {
-          // field is updateable
-          Schema.DescribeFieldResult fieldDescribe = field.getDescribe(); // describe each field (fd)
-          creatableFields.add(fieldDescribe.getName());
-        }
+    for (Schema.SObjectField field : getFieldMap(objApiName).values()) {
+      // field is updateable
+      Schema.DescribeFieldResult fieldDescribe = field.getDescribe(); // describe each field (fd)
+      if (fieldDescribe.isCreateable()) {
+        creatableFields.add(fieldDescribe.getName());
       }
     }
+
     return creatableFields;
   }
 
@@ -336,17 +261,11 @@ public class FieldUtils {
    * @return List of accessible fields for a given SObject.
    */
   public static List<String> getAccessibleFields(String objApiName) {
-    // Get a map of field name and field token
-    Map<String, Schema.SObjectField> fieldMap = getFieldMap(objApiName);
-
     List<String> accessibleFields = new List<String>();
-    if (fieldMap != null) {
-      for (Schema.SObjectField field : fieldMap.values()) {
-        if (isFieldAccessible(field)) {
-          // field is updateable
-          Schema.DescribeFieldResult fieldDescribe = field.getDescribe(); // describe each field (fd)
-          accessibleFields.add(fieldDescribe.getName());
-        }
+    for (Schema.SObjectField field : getFieldMap(objApiName).values()) {
+      Schema.DescribeFieldResult fieldDescribe = field.getDescribe(); // describe each field (fd)
+      if (fieldDescribe.isAccessible()) {
+        accessibleFields.add(fieldDescribe.getName());
       }
     }
     return accessibleFields;
@@ -358,17 +277,11 @@ public class FieldUtils {
    * @return updateableFields   List of updateable fields for a given SObject.
    */
   public static List<String> getUpdateableFields(String objApiName) {
-    // Get a map of field name and field token
-    Map<String, Schema.SObjectField> fieldMap = getFieldMap(objApiName);
-
     List<String> updateableFields = new List<String>();
-    if (fieldMap != null) {
-      for (Schema.SObjectField field : fieldMap.values()) {
-        if (isFieldUpdateable(field)) {
-          // field is updateable
-          Schema.DescribeFieldResult fieldDescribe = field.getDescribe(); // describe each field (fd)
-          updateableFields.add(fieldDescribe.getName());
-        }
+    for (Schema.SObjectField field : getFieldMap(objApiName).values()) {
+      Schema.DescribeFieldResult fieldDescribe = field.getDescribe(); // describe each field (fd)
+      if (fieldDescribe.isUpdateable()) {
+        updateableFields.add(fieldDescribe.getName());
       }
     }
     return updateableFields;

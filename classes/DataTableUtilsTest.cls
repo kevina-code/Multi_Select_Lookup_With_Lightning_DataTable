@@ -10,47 +10,105 @@
 private class DataTableUtilsTest {
   @isTest
   static void test_parsePropertiesFromFieldPath() {
-    String parsedFromPath = DataTableUtils.parsePropertiesFromFieldPath(
-        'Contact',
-        'Account.Owner.UserRole.Name'
-      )[2]
-      .segmentObjLabelName;
+    DatatableUtils.ParsedPathProperties ppp = DataTableUtils.parsePropertiesFromFieldPath(
+      'Contact',
+      'Account.Owner.UserRole.Name'
+    )[2];
+
     Assert.areEqual(
-      parsedFromPath,
+      ppp.prevPathSegment,
+      'Owner',
+      'Expected prevPathSegment value to be "Owner"'
+    );
+    Assert.areEqual(
+      ppp.pathSegment,
+      'UserRole',
+      'Expected pathSegment value to be "UserRole"'
+    );
+    Assert.areEqual(
+      ppp.segmentObjLabelName,
       'Role',
-      'Expected parsedFromPath value to be "Role"'
+      'Expected the segmentObjLabelName value to be "Role"'
+    );
+    Assert.areEqual(
+      ppp.segmentFieldApiName,
+      'UserRoleId',
+      'Expected segmentFieldApiName value to be "UserRoleId"'
+    );
+    Assert.areEqual(
+      ppp.segmentObjApiName,
+      'UserRole',
+      'Expected segmentObjApiName value to be "UserRole"'
+    );
+
+    DatatableUtils.ParsedPathProperties ppp2 = DataTableUtils.parsePropertiesFromFieldPath(
+      'Contact',
+      'AccountId'
+    )[0];
+
+    Assert.areEqual(
+      ppp2.prevPathSegment,
+      'Contact',
+      'Expected prevPathSegment value to be "Contact"'
+    );
+    Assert.areEqual(
+      ppp2.segmentObjLabelName,
+      'Account',
+      'Expected the segmentObjLabelName value to be "Account"'
+    );
+    Assert.areEqual(
+      ppp2.segmentFieldApiName,
+      'AccountId',
+      'Expected segmentFieldApiName value to be "AccountId"'
+    );
+    Assert.areEqual(
+      ppp2.segmentObjApiName,
+      'Account',
+      'Expected segmentObjApiName value to be "Account"'
     );
   }
 
   @isTest
   static void test_getColumnProperties() {
-    String columnHeaderLabel = DataTableUtils.getColumnProperties(
-        'Contact',
-        'Account.Owner.UserRole.Name'
-      )
-      .columnHeaderLabel;
-    String fieldType = DataTableUtils.getColumnProperties(
-        'Contact',
-        'Account.Owner.UserRole.Name'
-      )
-      .fieldType;
-    Boolean isUpdateable = DataTableUtils.getColumnProperties(
-        'Contact',
-        'Account.Owner.UserRole.Name'
-      )
-      .isUpdateable;
+    DataTableUtils.ColumnProperties columnProperties = DataTableUtils.getColumnProperties(
+      'Contact',
+      'Account.Owner.UserRole.Name'
+    );
 
     Assert.areEqual(
-      columnHeaderLabel,
+      columnProperties.columnHeaderLabel,
       'Account Owner Role Name',
       'Expected columnHeaderLabel value to be "Account Owner Role Name"'
     );
     Assert.areEqual(
-      fieldType,
+      columnProperties.fieldType,
       'STRING',
       'Expected fieldType value to be "STRING"'
     );
-    Assert.isFalse(isUpdateable, 'Expected isUpdateable value to be False');
+    Assert.isFalse(
+      columnProperties.isUpdateable,
+      'Expected isUpdateable value to be False'
+    );
+
+    DataTableUtils.ColumnProperties columnProperties2 = DataTableUtils.getColumnProperties(
+      'Contact',
+      'AccountId'
+    );
+
+    Assert.areEqual(
+      columnProperties2.columnHeaderLabel,
+      'Account',
+      'Expected columnHeaderLabel value to be "Account"'
+    );
+    Assert.areEqual(
+      columnProperties2.fieldType,
+      'REFERENCE',
+      'Expected fieldType value to be "REFERENCE"'
+    );
+    Assert.isTrue(
+      columnProperties2.isUpdateable,
+      'Expected isUpdateable value to be true'
+    );
   }
 
   @isTest

@@ -7,6 +7,8 @@
  * Date : Name : Notes
  */
 public class MultiSelectLookupCtrl {
+  private static final String FIELD_TYPE_REFERENCE = 'REFERENCE';
+
   /**
    * @description: dynamically retrieve records based on user search input
    * @param   objApiName          object API name to query records for
@@ -157,7 +159,7 @@ public class MultiSelectLookupCtrl {
           .fields.GetMap();
         if (
           String.valueOf(fieldMap.get(field).getDescribe().getType()) ==
-          'REFERENCE'
+          FIELD_TYPE_REFERENCE
         ) {
           String relObjApiName = fieldMap
               .get(field)

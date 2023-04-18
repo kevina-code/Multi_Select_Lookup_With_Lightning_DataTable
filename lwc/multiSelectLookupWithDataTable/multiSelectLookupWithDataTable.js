@@ -18,9 +18,11 @@ export default class MultiSelectLookupWithDataTable extends LightningElement {
   @api actionsStr;
   @api suppressBottomBar;
   @api enforceAccessibleFls; // whether to enforce accessible field level security (to control visibility of columns)
+  @api makeColumnsReadOnly; // whether to make every column in the datatable read only, regardless of updateable FLS
 
   recordData = [];
   colHeaderMap = {};
+  columnHeaders = [];
   linkifiedColumns = [];
   saveDraftValues = [];
 
@@ -28,6 +30,7 @@ export default class MultiSelectLookupWithDataTable extends LightningElement {
     this.recordData = [...event.detail.selectedRecs];
     this.linkifiedColumns = [...event.detail.linkifiedColumns];
     this.colHeaderMap = { ...event.detail.colHeaderMap };
+    this.columnHeaders = Object.keys(this.colHeaderMap);
   }
 
   handleCellChanged(event) {

@@ -9,6 +9,11 @@
  * Date : Name : Notes
  */
 public class RecordDataModels {
+  private static final String FIELD_TYPE_REFERENCE = 'REFERENCE';
+  private static final String FIELD_TYPE_PICKLIST = 'PICKLIST';
+  private static final String FIELD_TYPE_MULTIPICKLIST = 'MULTIPICKLIST';
+  private static final String NAME = 'NAME';
+
   /**
    * wrapper class to store field properties for a record's fields
    */
@@ -74,10 +79,13 @@ public class RecordDataModels {
         fieldProperty.linkLabel = columnHeader;
 
         if (!fieldPath.contains('.')) {
-          if (fieldProperty.fieldType == 'REFERENCE') {
+          if (fieldProperty.fieldType == FIELD_TYPE_REFERENCE) {
             fieldProperty.relObjName = columnProperties[index].relObjName;
             fieldProperty.relObjApiName = columnProperties[index].relObjApiName;
-          } else if (fieldProperty.fieldType == 'PICKLIST') {
+          } else if (
+            fieldProperty.fieldType == FIELD_TYPE_PICKLIST ||
+            fieldProperty.fieldType == FIELD_TYPE_MULTIPICKLIST
+          ) {
             fieldProperty.picklistLabels = FieldUtils.getPicklistLabels(
               objApiName,
               fieldPath
@@ -87,8 +95,8 @@ public class RecordDataModels {
               fieldPath
             );
           }
+          fieldProperty.fieldApiName = columnProperties[index].fieldApiName;
           fieldProperty.fieldValue = recordParam.get(fieldPath);
-          fieldProperty.fieldApiName = fieldPath;
           if (fieldProperty.fieldValue instanceof Id) {
             fieldProperty.linkId = String.valueOf(fieldProperty.fieldValue);
           }
@@ -102,7 +110,7 @@ public class RecordDataModels {
           String finalPathSegment = fieldPath.contains('.')
             ? fieldPath.substringAfterLast('.')
             : fieldPath;
-          if (finalPathSegment.toUpperCase() == 'NAME') {
+          if (finalPathSegment.toUpperCase() == NAME) {
             fieldProperty.linkId = (Id) FieldUtils.parseLastSubObjectFromPath(
                 recordParam,
                 fieldPath
@@ -140,7 +148,7 @@ public class RecordDataModels {
     List<DataTableUtils.ColumnProperties> columnProperties,
     Schema.DescribeSObjectResult describe
   ) {
-    String description = String.valueOf(record.get('Name'));
+    String description = String.valueOf(record.get(NAME));
     if (fieldPaths != null) {
       List<String> fieldPathList = fieldPaths.split(',');
       for (String fieldPath : fieldPathList) {
@@ -149,7 +157,7 @@ public class RecordDataModels {
         String columnHeader = columnProperties[index].columnHeaderLabel;
         if (
           fieldPath.toUpperCase() != 'ID' &&
-          fieldPath.toUpperCase() != 'NAME'
+          fieldPath.toUpperCase() != NAME
         ) {
           description +=
             ' —	' +

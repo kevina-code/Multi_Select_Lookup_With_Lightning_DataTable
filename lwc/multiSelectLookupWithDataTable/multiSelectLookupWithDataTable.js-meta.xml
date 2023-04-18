@@ -89,6 +89,13 @@
         label="Enforce Accessible FLS"
         description="Optionally enforce whether fields in the datatable are accessible through Field Level Security"
       />
+      <property
+        name="makeColumnsReadOnly"
+        type="Boolean"
+        default="false"
+        label="Make datatable columns read only"
+        description="Make every visible column in the datatable read only"
+      />
         </targetConfig>
         <targetConfig targets="lightning__FlowScreen">
           <property
@@ -157,6 +164,13 @@
         default="false"
         label="Enforce Accessible FLS"
         description="Optionally enforce whether fields in the datatable are accessible through Field Level Security"
+      />
+      <property
+        name="makeColumnsReadOnly"
+        type="Boolean"
+        default="false"
+        label="Make datatable columns read only"
+        description="Make every visible column in the datatable read only"
       />
     <property
         name="recordId"

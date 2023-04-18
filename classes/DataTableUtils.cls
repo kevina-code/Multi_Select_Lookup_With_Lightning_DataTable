@@ -7,12 +7,16 @@
  * Date : Name : Notes
  */
 public without sharing class DataTableUtils {
+  private static final String FIELD_TYPE_REFERENCE = 'REFERENCE';
+  private static final String NAME = 'NAME';
+
   /**
    * inner class to store field path segment properties
    */
   public class ParsedPathProperties {
-    public String objApiName;
+    public String segmentObjApiName;
     public String pathSegment;
+    public String prevPathSegment;
     public String relObjApiName;
     public String segmentObjLabelName;
     public String segmentFieldApiName;
@@ -23,7 +27,7 @@ public without sharing class DataTableUtils {
    *   parse the obj/field api/label names from the path
    * @param   record     queried record to parse field path from
    * @param   fieldPath  field path to parse (ex: 'Account.Owner.UserRole.Name');
-   * @return  pppList    data structure containing: pathSegment, segmentObjLabelName, objApiName, segmentFieldApiName
+   * @return  pppList    data structure containing: prevPathSegment, segmentObjLabelName, objApiName, segmentFieldApiName, etc
    */
   public static List<ParsedPathProperties> parsePropertiesFromFieldPath(
     String objApiName,
@@ -45,13 +49,13 @@ public without sharing class DataTableUtils {
       }
 
       ParsedPathProperties parsedPathProperties = new ParsedPathProperties();
-      String pathSegment = fieldPathSplit[i];
-      ParsedPathProperties.pathSegment = pathSegment;
-
+      String prevPathSegment = fieldPathSplit[i].trim();
+      parsedPathProperties.prevPathSegment = prevPathSegment;
       String nextPathSegment = fieldPathDynamic.substringAfter('.')
         .substringBefore('.');
-      fieldPathDynamic = fieldPathDynamic.remove(pathSegment + '.');
+      parsedPathProperties.pathSegment = nextPathSegment;
 
+      fieldPathDynamic = fieldPathDynamic.remove(prevPathSegment + '.');
       String nextFieldApiName = nextPathSegment.replace('__r', '__c');
       // if standard id field
       if (!nextFieldApiName.contains('__c')) {
@@ -60,23 +64,34 @@ public without sharing class DataTableUtils {
         }
       }
 
-      Schema.DescribeSObjectResult describe = FieldUtils.getDynamicDescribe(
+      Map<String, Schema.SObjectField> fieldMap = FieldUtils.getFieldMap(
         currentObjApiName
       );
-      Map<String, Schema.SObjectField> fieldMap = describe.fields.getMap();
+      // get the case sensitive conforming version of the field:
+      nextFieldApiName = fieldMap.get(nextFieldApiName).getDescribe().getName();
 
       String nextObjApiName = currentObjApiName;
-      if (i != fieldPathSplit.size() - 2) {
-        nextObjApiName = fieldMap
+      String relObjApiName;
+      if (
+        i != fieldPathSplit.size() - 2 ||
+        (String.valueOf(
+          fieldMap.get(nextFieldApiName).getDescribe().getType()
+        ) == FIELD_TYPE_REFERENCE)
+      ) {
+        // for example, if path segment is 'Owner' from a path that is 'Account.Owner.Name',
+        //  parsedObjApiName in this case would be 'User'
+        String parsedObjApiName = fieldMap
             .get(nextFieldApiName)
             .getDescribe()
             .getReferenceTo()[0]
           .getDescribe()
           .getName();
+        nextObjApiName = parsedObjApiName;
+        relObjApiName = parsedObjApiName;
       }
       currentObjApiName = nextObjApiName;
 
-      String label = nextFieldApiName.toUpperCase() != 'NAME'
+      String label = nextFieldApiName.toUpperCase() != NAME
         ? fieldMap
             .get(nextFieldApiName)
             .getDescribe()
@@ -84,22 +99,8 @@ public without sharing class DataTableUtils {
             .removeEnd(' ID')
         : nextFieldApiName;
 
-      String relObjApiName;
-      if (
-        String.valueOf(
-          fieldMap.get(nextFieldApiName).getDescribe().getType()
-        ) == 'REFERENCE'
-      ) {
-        relObjApiName = fieldMap
-            .get(nextFieldApiName)
-            .getDescribe()
-            .getReferenceTo()[0]
-          .getDescribe()
-          .getName();
-      }
-
-      parsedPathProperties.objApiName = currentObjApiName;
-      parsedPathProperties.pathSegment = pathSegment;
+      parsedPathProperties.segmentObjApiName = currentObjApiName;
+      parsedPathProperties.prevPathSegment = prevPathSegment;
       parsedPathProperties.relObjApiName = relObjApiName;
       parsedPathProperties.segmentObjLabelName = label;
       parsedPathProperties.segmentFieldApiName = nextFieldApiName;
@@ -114,14 +115,16 @@ public without sharing class DataTableUtils {
   public class ColumnProperties {
     public String columnHeaderLabel;
     public String fieldType;
+    public String fieldApiName;
     public Boolean isUpdateable = false;
     public Boolean isAccessible = false;
-    public String relObjName;
+    public String relObjName; // relationship field api name (for AccountId, this would be 'Account')
     public String relObjApiName; // relationship field obj api name (for AccountId, this would be 'Account')
   }
 
   /**
-   * @description: get column properties (column header label, fieldType, isupdateable)
+   * @description: get column properties (column header label, fieldType, isupdateable, etc)
+   *  for a particular field path
    * @param   objApiName            object API Name
    * @param   fieldPaths            Field API Names/paths to derive column headers from
    * @return  columnProperties      column properties for a given field path
@@ -138,9 +141,7 @@ public without sharing class DataTableUtils {
     );
 
     if (!fieldPath.contains('.')) {
-      Schema.DescribeSObjectResult describe = FieldUtils.getDynamicDescribe(
-        objApiName
-      );
+      columnProperties.fieldApiName = pppList[0].segmentFieldApiName;
       columnProperties.columnHeaderLabel = pppList[0].segmentObjLabelName;
       columnProperties.fieldType = FieldUtils.getFieldType(
         objApiName,
@@ -164,7 +165,7 @@ public without sharing class DataTableUtils {
         columnHeaderLabel += parsedPathProperties.segmentObjLabelName + ' ';
       }
 
-      String subObjApiName = pppList[pppList.size() - 1].objApiName;
+      String subObjApiName = pppList[pppList.size() - 1].segmentObjApiName;
       String fieldApiName = pppList[pppList.size() - 1].segmentFieldApiName;
       columnProperties.columnHeaderLabel = columnHeaderLabel.trim();
       columnProperties.fieldType = FieldUtils.getFieldType(

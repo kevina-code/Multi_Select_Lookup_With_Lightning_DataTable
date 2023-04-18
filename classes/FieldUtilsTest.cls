@@ -180,46 +180,33 @@ private class FieldUtilsTest {
   @isTest
   static void test_fieldPermissionMethods() {
     Assert.isTrue(
-      FieldUtils.isFieldUpdateable(Account.Name),
-      'Expected isFieldUpdateble to be true for Account Name field'
-    );
-    Assert.isTrue(
       FieldUtils.isFieldUpdateable('Account', 'Industry'),
       'Expected isFieldUpdateble to be true for Account Industry field'
-    );
-    Assert.isTrue(
-      FieldUtils.isFieldAccessible(Account.Name),
-      'Expected isFieldAccessible to be true for Account Name field'
     );
     Assert.isTrue(
       FieldUtils.isFieldAccessible('Account', 'Industry'),
       'Expected isFieldAccessible to be true for Account Industry field'
     );
     Assert.isTrue(
-      FieldUtils.isFieldCreateable(Account.Name),
+      FieldUtils.isFieldCreateable('Account', 'Name'),
       'Expected isFieldCreateable to be true for Account Name field'
-    );
-    Assert.isFalse(
-      FieldUtils.isFieldUpdateable(Account.CreatedDate),
-      'Expected isFieldUpdateble to be false for Created Date field'
     );
     Assert.isFalse(
       FieldUtils.isFieldUpdateable('Account', 'CreatedDate'),
       'Expected isFieldUpdateble to be false for Created Date field'
     );
     Assert.isTrue(
-      FieldUtils.isFieldAccessible(Account.CreatedDate),
+      FieldUtils.isFieldAccessible('Account', 'CreatedDate'),
       'Expected isFieldAccessible to be true for Created Date field'
     );
     Assert.isFalse(
-      FieldUtils.isFieldCreateable(Account.CreatedDate),
+      FieldUtils.isFieldCreateable('Account', 'CreatedDate'),
       'Expected isFieldCreateable to be false for Created Date field'
     );
   }
 
   @isTest
   static void test_getFieldType() {
-    Assert.areEqual(FieldUtils.getFieldType(Account.Industry), 'PICKLIST');
     Assert.areEqual(FieldUtils.getFieldType('Account', 'Industry'), 'PICKLIST');
   }
 

@@ -10,7 +10,6 @@ import { updateRecord, deleteRecord } from "lightning/uiRecordApi";
 import { refreshApex } from "@salesforce/apex";
 import { getDataTableWrapper } from "c/lwcUtils";
 import getRecordWrappers from "@salesforce/apex/DynamicDataTableCtrl.getRecordWrappers";
-import getTableProperties from "@salesforce/apex/DynamicDataTableCtrl.getTableProperties";
 
 const linkIdDelimiter = "_^_";
 const linkLabelDelimiter = "^_^";
@@ -26,16 +25,17 @@ export default class DynamicDataTable extends NavigationMixin(
   @api objApiName;
   @api fieldPaths;
   @api whereClause;
-  @api hideCheckboxColumn;
   @api actionsStr;
+  @api hideCheckboxColumn;
   @api suppressBottomBar;
   @api enforceAccessibleFls; // whether to enforce accessible field level security (to control visibility of columns)
+  @api makeColumnsReadOnly; // whether to make every column in the datatable read only, regardless of updateable FLS
 
   @api recordData = [];
   @api colHeaderMap = {}; // column header to column properties
   @api linkifiedColumns = [];
   @api selectedRowIds = [];
-  columnHeaders = [];
+  @api columnHeaders = [];
 
   wiredRecordWrappersResult;
   draftValues = [];
@@ -61,12 +61,12 @@ export default class DynamicDataTable extends NavigationMixin(
     ["EMAIL", "email"],
     ["PERCENT", "percent"],
     ["PHONE", "phone"],
-    ["PICKLIST", "text"],
-    ["MULTIPICKLIST", "text"],
     ["TEXTAREA", "text"],
     ["TIME", "text"],
     ["URL", "url"],
-    ["REFERENCE", "text"]
+    ["PICKLIST", "picklist"],
+    ["MULTIPICKLIST", "multipicklist"],
+    ["REFERENCE", "lookup"]
   ]);
 
   /**
@@ -84,6 +84,7 @@ export default class DynamicDataTable extends NavigationMixin(
       const wrapper = getDataTableWrapper(result.data);
       this.recordData = wrapper.records;
       this.colHeaderMap = wrapper.colHeaderMap;
+      this.columnHeaders = Object.keys(wrapper.colHeaderMap);
       this.linkifiedColumns = wrapper.linkifiedColumns;
     } else if (result.error) {
       console.log(
@@ -93,31 +94,6 @@ export default class DynamicDataTable extends NavigationMixin(
       this.dispatchEvent(
         new ShowToastEvent({
           title: "Error retrieving record data",
-          message: result.error.body.message,
-          variant: "error"
-        })
-      );
-    }
-  }
-
-  /**
-   * get field properties to apply to lightning data table
-   */
-  @wire(getTableProperties, {
-    objApiName: "$objApiName",
-    fieldPaths: "$fieldPaths"
-  })
-  wiredFieldProperties(result) {
-    if (result.data) {
-      this.columnHeaders = result.data.columnHeaders;
-    } else if (result.error) {
-      console.log(
-        "dynamicDataTable wiredFieldProperties error",
-        result.error.body.message
-      );
-      this.dispatchEvent(
-        new ShowToastEvent({
-          title: "Error retrieving field properties",
           message: result.error.body.message,
           variant: "error"
         })
@@ -154,18 +130,16 @@ export default class DynamicDataTable extends NavigationMixin(
    */
   get columns() {
     try {
-      const fieldPathArray = this.fieldPaths.replace(/\s/g, "").split(",");
+      const fieldPaths = this.fieldPaths.replace(/\s/g, "").split(",");
       const columnList = [];
-      for (let i = 0; i < fieldPathArray.length; i++) {
-        const fieldPath = fieldPathArray[i];
+      for (let i = 0; i < fieldPaths.length; i++) {
+        const fieldPath = fieldPaths[i];
         const fieldProperty = this.colHeaderMap[this.columnHeaders[i]];
         const fieldType = fieldProperty.fieldType;
         const isAccessible = fieldProperty.isAccessible;
         const type = this.fieldTypeMap.get(fieldType);
         // don't create a column for the record's Id field,
         //  since it will be merged into the Name field to create a link to the record
-        console.log("enforceAccessibleFls: ", this.enforceAccessibleFls);
-        console.log("isAccessible: ", this.isAccessible);
         if (
           fieldPath.toUpperCase() !== "ID" &&
           (!this.enforceAccessibleFls || isAccessible)
@@ -174,7 +148,8 @@ export default class DynamicDataTable extends NavigationMixin(
           const column = {};
           column.label = this.columnHeaders[i];
           column.type = type;
-          column.editable = fieldProperty.isUpdateable;
+          column.editable =
+            !this.makeColumnsReadOnly && fieldProperty.isUpdateable;
           column.sortable = true;
 
           const _fieldApiName = fieldProperty.fieldApiName;
@@ -186,7 +161,10 @@ export default class DynamicDataTable extends NavigationMixin(
               target: "_blank"
             };
           } else {
-            if (fieldType === "PICKLIST" && !isExtendedPath) {
+            if (
+              (fieldType === "PICKLIST" || fieldType === "MULTIPICKLIST") &&
+              !isExtendedPath
+            ) {
               const picklistLabels = fieldProperty.picklistLabels;
               const picklistValues = fieldProperty.picklistValues;
 
@@ -199,13 +177,14 @@ export default class DynamicDataTable extends NavigationMixin(
               }
 
               column.fieldName = _fieldApiName;
-              column.type = "picklist";
               column.typeAttributes = {
                 placeholder: "Select an option",
                 options: optionsList, // list of all picklist options
                 value: { fieldName: _fieldApiName }, // default value for picklist
-                context: { fieldName: "Id" }, // binding account Id with context variable to be returned back
-                fieldApiName: _fieldApiName
+                uniqueId: { fieldName: "Id" }, // binding Id with uniqueId
+                fieldApiName: _fieldApiName,
+                recordData: this.recordData,
+                makeColumnsReadOnly: this.makeColumnsReadOnly
               };
             } else if (fieldType === "REFERENCE" && !isExtendedPath) {
               // lookup fields, base object level
@@ -217,7 +196,6 @@ export default class DynamicDataTable extends NavigationMixin(
 
               column.label = relObjName;
               column.fieldName = _fieldApiName;
-              column.type = "lookup";
               column.typeAttributes = {
                 placeholder: "Select " + relObjName,
                 uniqueId: { fieldName: "Id" }, //pass Id of current record to lookup for context
@@ -229,8 +207,8 @@ export default class DynamicDataTable extends NavigationMixin(
                 filters: "",
                 valueId: { fieldName: _fieldApiName },
                 fieldApiName: _fieldApiName,
-                relObjApiName: relObjApiName,
-                recordData: this.recordData
+                recordData: this.recordData,
+                makeColumnsReadOnly: this.makeColumnsReadOnly
               };
             } else {
               // all other fields
@@ -337,11 +315,13 @@ export default class DynamicDataTable extends NavigationMixin(
     const phoneMatch = /^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/;
     const fieldType = this.colHeaderMap[cleanColHeaderName].fieldType;
 
+    if (fieldType === "DATE") {
+      updatedItem[colHeaderName] = updatedItem[colHeaderName].substring(0, 10);
+    }
+
     let valueIsValid = true;
     if (fieldType === "PHONE") {
-      valueIsValid = phoneMatch.test(
-        updatedItem[cleanColHeaderName + chDelimiter]
-      );
+      valueIsValid = phoneMatch.test(updatedItem[colHeaderName]);
     } // add additional validations here
 
     const rowsError = {};
@@ -395,9 +375,30 @@ export default class DynamicDataTable extends NavigationMixin(
     const dataReceived = event.detail.data;
     const fieldApiName = dataReceived.fieldApiName;
     const updatedItem = {
-      Id: dataReceived.context
+      Id: dataReceived.uniqueId
     };
     updatedItem[fieldApiName] = dataReceived.value;
+    this.appendDraftValues(updatedItem);
+    this.updateDraftValues(updatedItem);
+    this.updateDataValues(updatedItem);
+  }
+
+  // handle when user changes a multi select picklist field value in the data table
+  handleMultiPicklistChanged(event) {
+    event.stopPropagation();
+    const dataReceived = event.detail.data;
+    const fieldApiName = dataReceived.fieldApiName;
+    const values = dataReceived.values;
+    const updatedItem = {
+      Id: dataReceived.uniqueId
+    };
+
+    let valuesStr = "";
+    for (let i = 0; i < values.length; i++) {
+      valuesStr += values[i] + ";";
+    }
+
+    updatedItem[fieldApiName] = valuesStr;
     this.appendDraftValues(updatedItem);
     this.updateDraftValues(updatedItem);
     this.updateDataValues(updatedItem);
@@ -425,6 +426,7 @@ export default class DynamicDataTable extends NavigationMixin(
     if (!this.draftValues.find((record) => record.Id === item.Id)) {
       this.draftValues.push(item);
     } else {
+      // get the cached draftValues row:
       const filteredRow = this.draftValues.filter(function (row) {
         return row.Id === item.Id;
       })[0];
@@ -442,10 +444,12 @@ export default class DynamicDataTable extends NavigationMixin(
     let draftValueChanged = false;
     const copyDraftValues = [...this.draftValues];
 
+    // get the cached draftValues row:
     const applicableRow = copyDraftValues.filter(function (row) {
       return row.Id === updatedItem.Id;
     })[0];
 
+    // update the field values in the cached draftValues row:
     for (const field in updatedItem) {
       applicableRow[field] = updatedItem[field];
       draftValueChanged = true;
@@ -454,6 +458,8 @@ export default class DynamicDataTable extends NavigationMixin(
       return row.Id === updatedItem.Id;
     });
     Object.assign(copyDraftValues[index], applicableRow);
+
+    // write the updated values back to draftValues:
     if (draftValueChanged) {
       this.draftValues = [...copyDraftValues];
     } else {
@@ -474,6 +480,7 @@ export default class DynamicDataTable extends NavigationMixin(
       )
     );
 
+    // replace field values with the updated values:
     for (const field in updatedItem) {
       applicableRecord[field] = updatedItem[field];
     }
@@ -501,6 +508,8 @@ export default class DynamicDataTable extends NavigationMixin(
       )
     );
 
+    // get record inputs to feed to updateRecord method
+    //  ex: [{"fields":{"Phone":"(512) 757-6009","Id":"0035w000036mj7YAAQ"}}]
     const recordInputs = curatedDraftValues.slice().map((draft) => {
       const fields = Object.assign({}, draft);
       return { fields };
@@ -514,7 +523,7 @@ export default class DynamicDataTable extends NavigationMixin(
         this.draftValues = [];
         this.dispatchEvent(
           new ShowToastEvent({
-            title: "Succeess",
+            title: "Success",
             message: "Successfully updated records!",
             variant: "success"
           })
